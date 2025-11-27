@@ -5,9 +5,16 @@ public actor SupabaseClientWrapper {
     private let client: SupabaseClient
     
     public init(supabaseURL: URL, supabaseKey: String) {
+        // Opt-in to the upcoming default behavior so the SDK doesn't log the deprecation warning
+        // about initial sessions. This emits any locally stored session immediately.
+        let options = SupabaseClientOptions(
+            auth: .init(emitLocalSessionAsInitialSession: true)
+        )
+
         self.client = SupabaseClient(
             supabaseURL: supabaseURL,
-            supabaseKey: supabaseKey
+            supabaseKey: supabaseKey,
+            options: options
         )
     }
     
@@ -36,7 +43,7 @@ public actor SupabaseClientWrapper {
     
     // MARK: - Events
     public func fetchEvents(userID: UUID, from: Date, to: Date) async throws -> [EventDTO] {
-        try await client.database
+        try await client
             .from("events")
             .select()
             .eq("user_id", value: userID.uuidString)
@@ -46,9 +53,9 @@ public actor SupabaseClientWrapper {
             .execute()
             .value
     }
-    
+
     public func createEvent(_ event: EventDTO) async throws -> EventDTO {
-        try await client.database
+        try await client
             .from("events")
             .insert(event)
             .select()
@@ -61,7 +68,7 @@ public actor SupabaseClientWrapper {
         guard let id = event.id else {
             throw SupabaseError.missingID
         }
-        return try await client.database
+        return try await client
             .from("events")
             .update(event)
             .eq("id", value: Int(id))
@@ -70,18 +77,18 @@ public actor SupabaseClientWrapper {
             .execute()
             .value
     }
-    
+
     public func deleteEvent(id: Int64) async throws {
-        try await client.database
+        try await client
             .from("events")
             .update(["deleted_at": Date().ISO8601Format()])
             .eq("id", value: Int(id))
             .execute()
     }
-    
+
     // MARK: - Calendars
     public func fetchCalendars(userID: UUID) async throws -> [CalendarDTO] {
-        try await client.database
+        try await client
             .from("calendars")
             .select()
             .eq("owner_id", value: userID.uuidString)
@@ -89,9 +96,9 @@ public actor SupabaseClientWrapper {
             .execute()
             .value
     }
-    
+
     public func createCalendar(_ calendar: CalendarDTO) async throws -> CalendarDTO {
-        try await client.database
+        try await client
             .from("calendars")
             .insert(calendar)
             .select()
@@ -104,7 +111,7 @@ public actor SupabaseClientWrapper {
         guard let id = calendar.id else {
             throw SupabaseError.missingID
         }
-        return try await client.database
+        return try await client
             .from("calendars")
             .update(calendar)
             .eq("id", value: Int(id))
@@ -113,18 +120,18 @@ public actor SupabaseClientWrapper {
             .execute()
             .value
     }
-    
+
     public func deleteCalendar(id: Int64) async throws {
-        try await client.database
+        try await client
             .from("calendars")
             .update(["deleted_at": Date().ISO8601Format()])
             .eq("id", value: Int(id))
             .execute()
     }
-    
+
     // MARK: - Settings
     public func fetchNotificationSettings(userID: UUID) async throws -> NotificationSettingsDTO? {
-        let response: PostgrestResponse<[NotificationSettingsDTO]> = try await client.database
+        let response: PostgrestResponse<[NotificationSettingsDTO]> = try await client
             .from("notification_settings")
             .select()
             .eq("user_id", value: userID.uuidString)
@@ -132,9 +139,9 @@ public actor SupabaseClientWrapper {
             .execute()
         return response.value.first
     }
-    
+
     public func upsertNotificationSettings(_ settings: NotificationSettingsDTO) async throws -> NotificationSettingsDTO {
-        try await client.database
+        try await client
             .from("notification_settings")
             .upsert(settings)
             .select()
@@ -142,9 +149,9 @@ public actor SupabaseClientWrapper {
             .execute()
             .value
     }
-    
+
     public func fetchAppearanceSettings(userID: UUID) async throws -> AppearanceSettingsDTO? {
-        let response: PostgrestResponse<[AppearanceSettingsDTO]> = try await client.database
+        let response: PostgrestResponse<[AppearanceSettingsDTO]> = try await client
             .from("appearance_settings")
             .select()
             .eq("user_id", value: userID.uuidString)
@@ -152,9 +159,9 @@ public actor SupabaseClientWrapper {
             .execute()
         return response.value.first
     }
-    
+
     public func upsertAppearanceSettings(_ settings: AppearanceSettingsDTO) async throws -> AppearanceSettingsDTO {
-        try await client.database
+        try await client
             .from("appearance_settings")
             .upsert(settings)
             .select()

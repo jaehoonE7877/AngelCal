@@ -1,5 +1,8 @@
 import ProjectDescription
 
+let baseSettings: SettingsDictionary = .init()
+    .automaticCodeSigning(devTeam: "RFHV927M8S")
+
 let project = Project(
     name: "AngelCal",
     options: .options(
@@ -19,6 +22,8 @@ let project = Project(
                         "UIColorName": "",
                         "UIImageName": "",
                     ],
+                    "SupabaseURL": "$(SUPABASE_URL)",
+                    "SupabaseAnonKey": "$(SUPABASE_ANON_KEY)",
                 ]
             ),
             buildableFolders: [
@@ -35,7 +40,13 @@ let project = Project(
                 .external(name: "ComposableArchitecture"),
                 .external(name: "Supabase"),
             ],
-            settings: Settings.settings(base: .init().automaticCodeSigning(devTeam: "RFHV927M8S"))
+            settings: .settings(
+                base: baseSettings,
+                configurations: [
+                    .debug(name: "Debug", xcconfig: "Secrets.xcconfig"),
+                    .release(name: "Release", xcconfig: "Secrets.xcconfig")
+                ]
+            )
         )
     ]
 )
