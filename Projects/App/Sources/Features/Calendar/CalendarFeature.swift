@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import Core
 import SwiftUI
 
 @Reducer
@@ -7,7 +8,7 @@ struct CalendarFeature {
     struct State: Equatable {
         var currentDate: Date = Date()
         var selectedDate: Date = Date()
-        var events: [EventDTO] = []
+        var events: [Event] = []
         @Presents var addEvent: EventFormFeature.State?
         @Presents var eventDetail: EventDetailFeature.State?
     }
@@ -19,13 +20,13 @@ struct CalendarFeature {
         case selectDate(Date)
         case addEventButtonTapped
         case addEvent(PresentationAction<EventFormFeature.Action>)
-        case eventTapped(EventDTO)
+        case eventTapped(Event)
         case eventDetail(PresentationAction<EventDetailFeature.Action>)
         case fetchEvents
-        case eventsLoaded([EventDTO])
+        case eventsLoaded([Event])
     }
     
-    @Dependency(\.database) var database
+    @Dependency(\.eventClient) var eventClient
     
     var body: some ReducerOf<Self> {
         Reduce { state, action in
@@ -65,7 +66,7 @@ struct CalendarFeature {
                 
             case .addEvent(.presented(.delegate(.saveEvent(let event)))):
                 return .run { send in
-                    try await database.addEvent(event)
+                    _ = try await eventClient.createEvent(event)
                     await send(.fetchEvents)
                 }
                 
@@ -78,8 +79,8 @@ struct CalendarFeature {
                 
             case .eventDetail(.presented(.delegate(.deleteEvent(let id)))):
                 return .run { send in
-                    if let event = try await database.fetchEvents(Date.distantPast, Date.distantFuture).first(where: { $0.id == id }) {
-                        try await database.deleteEvent(event)
+                    if let id = id {
+                        try await eventClient.deleteEvent(id)
                         await send(.fetchEvents)
                     }
                 }
@@ -95,9 +96,8 @@ struct CalendarFeature {
                           let endOfMonth = calendar.date(byAdding: DateComponents(month: 1, day: -1), to: startOfMonth)
                     else { return }
                     
-                    let events = try await database.fetchEvents(startOfMonth, endOfMonth)
-                    let dtos = events.map(EventDTO.init)
-                    await send(.eventsLoaded(dtos))
+                    let events = try await eventClient.fetchEvents(startOfMonth, endOfMonth)
+                    await send(.eventsLoaded(events))
                 }
                 
             case .eventsLoaded(let events):

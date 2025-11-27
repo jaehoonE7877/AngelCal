@@ -48,9 +48,9 @@ public actor SwiftDataClient {
         try modelContext.save()
     }
     
-    public func updateEvent(_ event: EventEntity) throws {
+    public func updateEvent(_ event: EventEntity, markPending: Bool = true) throws {
         event.updatedAt = Date()
-        event.pendingSync = true
+        if markPending { event.pendingSync = true }
         try modelContext.save()
     }
     
@@ -63,6 +63,14 @@ public actor SwiftDataClient {
     public func getEvent(remoteID: Int64) throws -> EventEntity? {
         let predicate = #Predicate<EventEntity> { event in
             event.remoteID == remoteID
+        }
+        let descriptor = FetchDescriptor<EventEntity>(predicate: predicate)
+        return try modelContext.fetch(descriptor).first
+    }
+    
+    public func getEvent(localID: UUID) throws -> EventEntity? {
+        let predicate = #Predicate<EventEntity> { event in
+            event.localID == localID
         }
         let descriptor = FetchDescriptor<EventEntity>(predicate: predicate)
         return try modelContext.fetch(descriptor).first
@@ -88,6 +96,26 @@ public actor SwiftDataClient {
         }
         let descriptor = FetchDescriptor<CalendarEntity>(predicate: predicate)
         return try modelContext.fetch(descriptor).first
+    }
+    
+    public func getCalendar(localID: UUID) throws -> CalendarEntity? {
+        let predicate = #Predicate<CalendarEntity> { calendar in
+            calendar.localID == localID
+        }
+        let descriptor = FetchDescriptor<CalendarEntity>(predicate: predicate)
+        return try modelContext.fetch(descriptor).first
+    }
+    
+    public func updateCalendar(_ calendar: CalendarEntity, markPending: Bool = true) throws {
+        calendar.updatedAt = Date()
+        if markPending { calendar.pendingSync = true }
+        try modelContext.save()
+    }
+    
+    public func deleteCalendar(_ calendar: CalendarEntity) throws {
+        calendar.deletedAt = Date()
+        calendar.pendingSync = true
+        try modelContext.save()
     }
     
     // MARK: - Outbox Operations

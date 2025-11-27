@@ -24,9 +24,12 @@ let project = Project(
                     ],
                 ]
             ),
-            buildableFolders: [
-                "Sources",
-                "Resources",
+            sources: [
+                "Sources/**",
+                "Derived/Sources/**",
+            ],
+            resources: [
+                "Resources/**",
             ],
             dependencies: []
         )

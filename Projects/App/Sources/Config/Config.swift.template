@@ -1,6 +1,8 @@
 import Foundation
 
 enum AppConfig {
+    /// Provide via env `SUPABASE_URL` or Info.plist `SupabaseURL`
     static let supabaseURL = "YOUR_SUPABASE_URL_HERE"
+    /// Provide via env `SUPABASE_ANON_KEY` or Info.plist `SupabaseAnonKey`
     static let supabaseAnonKey = "YOUR_SUPABASE_ANON_KEY_HERE"
 }

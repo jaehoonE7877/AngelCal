@@ -26,6 +26,10 @@ let project = Project(
                 "Resources",
             ],
             dependencies: [
+                .project(target: "Core", path: "../Core"),
+                .project(target: "Data", path: "../Data"),
+                .project(target: "SwiftDataClient", path: "../SwiftDataClient"),
+                .project(target: "SupabaseClient", path: "../SupabaseClient"),
                 .project(target: "FeatureMain", path: "../Features/FeatureMain"),
                 .project(target: "DSKit", path: "../DSKit"),
                 .external(name: "ComposableArchitecture"),

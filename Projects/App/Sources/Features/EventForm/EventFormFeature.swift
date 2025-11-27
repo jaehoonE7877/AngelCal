@@ -1,4 +1,5 @@
 import ComposableArchitecture
+import Core
 import SwiftUI
 
 @Reducer
@@ -11,9 +12,11 @@ struct EventFormFeature {
         var isAllDay: Bool = false
         var location: String = ""
         var notes: String = ""
+        var userID: UUID = UUID()
+        var calendarID: Int64 = 1
         
         // If editing an existing event
-        var eventId: UUID?
+        var eventId: Int64?
     }
     
     enum Action: BindableAction {
@@ -39,13 +42,15 @@ struct EventFormFeature {
                 
             case .saveButtonTapped:
                 let event = Event(
-                    id: state.eventId ?? UUID(),
+                    id: state.eventId,
+                    userID: state.userID,
+                    calendarID: state.calendarID,
                     title: state.title,
-                    startDate: state.startDate,
-                    endDate: state.endDate,
+                    startAt: state.startDate,
+                    endAt: state.endDate,
+                    allDay: state.isAllDay,
                     location: state.location.isEmpty ? nil : state.location,
-                    notes: state.notes.isEmpty ? nil : state.notes,
-                    isAllDay: state.isAllDay
+                    memo: state.notes.isEmpty ? nil : state.notes
                 )
                 return .run { send in
                     await send(.delegate(.saveEvent(event)))

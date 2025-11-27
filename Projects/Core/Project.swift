@@ -11,7 +11,6 @@ let project = Project(
             deploymentTargets: .iOS("18.0"),
             sources: ["Sources/**"],
             dependencies: [
-                .project(target: "Data", path: "../Data"),
                 .project(target: "Shared", path: "../Shared"),
                 .external(name: "ComposableArchitecture"),
             ]

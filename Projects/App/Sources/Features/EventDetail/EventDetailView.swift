@@ -1,5 +1,6 @@
 import SwiftUI
 import ComposableArchitecture
+import Core
 import DSKit
 
 struct EventDetailView: View {
@@ -15,16 +16,16 @@ struct EventDetailView: View {
                     }
                     
                     LabeledContent("Date") {
-                        Text(store.event.startDate, style: .date)
+                        Text(store.event.startAt, style: .date)
                             .font(AngelTypography.body())
                     }
                     
                     LabeledContent("Time") {
-                        if store.event.isAllDay {
+                        if store.event.allDay {
                             Text("All day")
                                 .font(AngelTypography.body())
                         } else {
-                            Text("\(store.event.startDate, style: .time) - \(store.event.endDate, style: .time)")
+                            Text("\(store.event.startAt, style: .time) - \(store.event.endAt, style: .time)")
                                 .font(AngelTypography.body())
                         }
                     }
@@ -37,9 +38,9 @@ struct EventDetailView: View {
                     }
                 }
                 
-                if let notes = store.event.notes, !notes.isEmpty {
+                if let memo = store.event.memo, !memo.isEmpty {
                     Section("Notes") {
-                        Text(notes)
+                        Text(memo)
                             .font(AngelTypography.body())
                     }
                 }

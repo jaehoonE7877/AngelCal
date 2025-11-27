@@ -1,4 +1,7 @@
 import Foundation
+import Core
+import SwiftDataClient
+import SupabaseClient
 
 // MARK: - Mappers: Domain Model <-> Entity
 public extension EventEntity {

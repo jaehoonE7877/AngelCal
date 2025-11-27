@@ -1,5 +1,6 @@
 import SwiftUI
 import ComposableArchitecture
+import Core
 import DSKit
 
 struct CalendarView: View {
@@ -85,15 +86,15 @@ struct CalendarView: View {
         return "\(components.year!)-\(components.month!)"
     }
     
-    private var eventsForDisplay: [EventDTO] {
+    private var eventsForDisplay: [Event] {
         let calendar = Calendar.current
         return store.events.filter { event in
-            calendar.isDate(event.startDate, inSameDayAs: store.selectedDate)
+            calendar.isDate(event.startAt, inSameDayAs: store.selectedDate)
         }.sorted { (e1, e2) in
-            if e1.isAllDay != e2.isAllDay {
-                return e1.isAllDay
+            if e1.allDay != e2.allDay {
+                return e1.allDay
             }
-            return e1.startDate < e2.startDate
+            return e1.startAt < e2.startAt
         }
     }
     
@@ -132,7 +133,7 @@ struct CalendarView: View {
                 )
             } else {
                 VStack(spacing: 10) {
-                    ForEach(eventsForDisplay) { event in
+                    ForEach(Array(eventsForDisplay.enumerated()), id: \.offset) { _, event in
                         EventRow(event: event)
                             .onTapGesture {
                                 store.send(.eventTapped(event))
@@ -208,12 +209,12 @@ struct CalendarView: View {
 }
 
 struct EventRow: View {
-    let event: EventDTO
+    let event: Event
     
     var body: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
-                Text(event.startDate, style: event.isAllDay ? .date : .time)
+                Text(event.startAt, style: event.allDay ? .date : .time)
                     .font(AngelTypography.callout(.semibold))
                     .foregroundStyle(Color.angelTextPrimary)
                 Text(event.title)
@@ -247,7 +248,7 @@ struct EventRow: View {
         .shadow(color: Color.black.opacity(0.12), radius: 8, y: 4)
     }
     
-    private func color(for event: EventDTO) -> Color {
+    private func color(for event: Event) -> Color {
         let palette: [Color] = [
             AngelColors.primary,
             AngelColors.accent,
@@ -263,7 +264,7 @@ struct EventRow: View {
 struct MonthView: View {
     let currentDate: Date
     let selectedDate: Date
-    let events: [EventDTO]
+    let events: [Event]
     let onSelectDate: (Date) -> Void
     
     private let calendar = Calendar.current
@@ -313,8 +314,8 @@ struct MonthView: View {
         }
     }
     
-    private func eventsForDay(_ date: Date) -> [EventDTO] {
-        events.filter { calendar.isDate($0.startDate, inSameDayAs: date) }
+    private func eventsForDay(_ date: Date) -> [Event] {
+        events.filter { calendar.isDate($0.startAt, inSameDayAs: date) }
     }
 }
 
@@ -419,7 +420,7 @@ extension Calendar {
 
 struct WeekView: View {
     let currentDate: Date
-    let events: [EventDTO]
+    let events: [Event]
     let selectedDate: Date
     let onSelectDate: (Date) -> Void
     
@@ -470,11 +471,11 @@ struct WeekView: View {
     
     private func hasEvents(on date: Date) -> Bool {
         events.contains { event in
-            calendar.isDate(event.startDate, inSameDayAs: date)
+            calendar.isDate(event.startAt, inSameDayAs: date)
         }
     }
     
-    private func eventsForDay(_ date: Date) -> [EventDTO] {
-        events.filter { calendar.isDate($0.startDate, inSameDayAs: date) }
+    private func eventsForDay(_ date: Date) -> [Event] {
+        events.filter { calendar.isDate($0.startAt, inSameDayAs: date) }
     }
 }

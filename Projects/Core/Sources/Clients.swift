@@ -1,5 +1,14 @@
 import Foundation
 import ComposableArchitecture
+import XCTestDynamicOverlay
+
+private func _unimplemented<T>() -> T {
+    fatalError("unimplemented")
+}
+
+private func _unimplementedThrowing<T>() throws -> T {
+    fatalError("unimplemented")
+}
 
 // MARK: - Event Client
 @DependencyClient
@@ -11,17 +20,6 @@ public struct EventClient: Sendable {
     public var getEvent: @Sendable (Int64) async throws -> Event?
 }
 
-extension EventClient: TestDependencyKey {
-    public static let testValue = EventClient()
-}
-
-extension DependencyValues {
-    public var eventClient: EventClient {
-        get { self[EventClient.self] }
-        set { self[EventClient.self] = newValue }
-    }
-}
-
 // MARK: - Calendar Client
 @DependencyClient
 public struct CalendarClient: Sendable {
@@ -31,35 +29,13 @@ public struct CalendarClient: Sendable {
     public var deleteCalendar: @Sendable (Int64) async throws -> Void
 }
 
-extension CalendarClient: TestDependencyKey {
-    public static let testValue = CalendarClient()
-}
-
-extension DependencyValues {
-    public var calendarClient: CalendarClient {
-        get { self[CalendarClient.self] }
-        set { self[CalendarClient.self] = newValue }
-    }
-}
-
 // MARK: - Auth Client
 @DependencyClient
 public struct AuthClient: Sendable {
     public var signInWithApple: @Sendable (String) async throws -> UserProfile
     public var signOut: @Sendable () async throws -> Void
     public var getCurrentUser: @Sendable () async throws -> UserProfile?
-    public var isAuthenticated: @Sendable () async -> Bool
-}
-
-extension AuthClient: TestDependencyKey {
-    public static let testValue = AuthClient()
-}
-
-extension DependencyValues {
-    public var authClient: AuthClient {
-        get { self[AuthClient.self] }
-        set { self[AuthClient.self] = newValue }
-    }
+    public var isAuthenticated: @Sendable () async -> Bool = { false }
 }
 
 // MARK: - Sync Client
@@ -72,17 +48,6 @@ public struct SyncClient: Sendable {
     public var processPendingOutbox: @Sendable () async throws -> Void
 }
 
-extension SyncClient: TestDependencyKey {
-    public static let testValue = SyncClient()
-}
-
-extension DependencyValues {
-    public var syncClient: SyncClient {
-        get { self[SyncClient.self] }
-        set { self[SyncClient.self] = newValue }
-    }
-}
-
 // MARK: - Settings Client
 @DependencyClient
 public struct SettingsClient: Sendable {
@@ -90,17 +55,6 @@ public struct SettingsClient: Sendable {
     public var updateNotificationSettings: @Sendable (NotificationSettings) async throws -> NotificationSettings
     public var getAppearanceSettings: @Sendable () async throws -> AppearanceSettings?
     public var updateAppearanceSettings: @Sendable (AppearanceSettings) async throws -> AppearanceSettings
-}
-
-extension SettingsClient: TestDependencyKey {
-    public static let testValue = SettingsClient()
-}
-
-extension DependencyValues {
-    public var settingsClient: SettingsClient {
-        get { self[SettingsClient.self] }
-        set { self[SettingsClient.self] = newValue }
-    }
 }
 
 // MARK: - Template Client
@@ -113,12 +67,92 @@ public struct TemplateClient: Sendable {
     public var reorderTemplates: @Sendable ([Int64]) async throws -> Void
 }
 
-extension TemplateClient: TestDependencyKey {
-    public static let testValue = TemplateClient()
+// MARK: - Test Defaults
+extension EventClient: TestDependencyKey {
+    public static var testValue: EventClient = .init(
+        fetchEvents: { _, _ in try await _unimplementedThrowing() },
+        createEvent: { _ in try await _unimplementedThrowing() },
+        updateEvent: { _ in try await _unimplementedThrowing() },
+        deleteEvent: { _ in try await _unimplementedThrowing() },
+        getEvent: { _ in try await _unimplementedThrowing() }
+    )
 }
 
-extension DependencyValues {
-    public var templateClient: TemplateClient {
+extension CalendarClient: TestDependencyKey {
+    public static var testValue: CalendarClient = .init(
+        fetchCalendars: { try await _unimplementedThrowing() },
+        createCalendar: { _ in try await _unimplementedThrowing() },
+        updateCalendar: { _ in try await _unimplementedThrowing() },
+        deleteCalendar: { _ in try await _unimplementedThrowing() }
+    )
+}
+
+extension AuthClient: TestDependencyKey {
+    public static var testValue: AuthClient = .init(
+        signInWithApple: { _ in try await _unimplementedThrowing() },
+        signOut: { try await _unimplementedThrowing() },
+        getCurrentUser: { try await _unimplementedThrowing() },
+        isAuthenticated: { _unimplemented() }
+    )
+}
+
+extension SyncClient: TestDependencyKey {
+    public static var testValue: SyncClient = .init(
+        syncAll: { try await _unimplementedThrowing() },
+        syncEvents: { try await _unimplementedThrowing() },
+        syncCalendars: { try await _unimplementedThrowing() },
+        syncSettings: { try await _unimplementedThrowing() },
+        processPendingOutbox: { try await _unimplementedThrowing() }
+    )
+}
+
+extension SettingsClient: TestDependencyKey {
+    public static var testValue: SettingsClient = .init(
+        getNotificationSettings: { try await _unimplementedThrowing() },
+        updateNotificationSettings: { _ in try await _unimplementedThrowing() },
+        getAppearanceSettings: { try await _unimplementedThrowing() },
+        updateAppearanceSettings: { _ in try await _unimplementedThrowing() }
+    )
+}
+
+extension TemplateClient: TestDependencyKey {
+    public static var testValue: TemplateClient = .init(
+        fetchTemplates: { try await _unimplementedThrowing() },
+        createTemplate: { _ in try await _unimplementedThrowing() },
+        updateTemplate: { _ in try await _unimplementedThrowing() },
+        deleteTemplate: { _ in try await _unimplementedThrowing() },
+        reorderTemplates: { _ in try await _unimplementedThrowing() }
+    )
+}
+
+// MARK: - Dependency accessors
+public extension DependencyValues {
+    var eventClient: EventClient {
+        get { self[EventClient.self] }
+        set { self[EventClient.self] = newValue }
+    }
+    
+    var calendarClient: CalendarClient {
+        get { self[CalendarClient.self] }
+        set { self[CalendarClient.self] = newValue }
+    }
+    
+    var authClient: AuthClient {
+        get { self[AuthClient.self] }
+        set { self[AuthClient.self] = newValue }
+    }
+    
+    var syncClient: SyncClient {
+        get { self[SyncClient.self] }
+        set { self[SyncClient.self] = newValue }
+    }
+    
+    var settingsClient: SettingsClient {
+        get { self[SettingsClient.self] }
+        set { self[SettingsClient.self] = newValue }
+    }
+    
+    var templateClient: TemplateClient {
         get { self[TemplateClient.self] }
         set { self[TemplateClient.self] = newValue }
     }

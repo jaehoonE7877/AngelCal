@@ -1,11 +1,12 @@
 import ComposableArchitecture
+import Core
 import SwiftUI
 
 @Reducer
 struct EventDetailFeature {
     @ObservableState
     struct State: Equatable {
-        let event: EventDTO
+        let event: Event
     }
     
     enum Action {
@@ -13,7 +14,7 @@ struct EventDetailFeature {
         case delegate(Delegate)
         
         enum Delegate {
-            case deleteEvent(UUID)
+            case deleteEvent(Int64?)
         }
     }
     

@@ -42,7 +42,7 @@ public actor SupabaseClientWrapper {
             .eq("user_id", value: userID.uuidString)
             .gte("start_at", value: from.ISO8601Format())
             .lte("start_at", value: to.ISO8601Format())
-            .is("deleted_at", value: "null")
+            .is("deleted_at", value: nil as Bool?)
             .execute()
             .value
     }
@@ -64,7 +64,7 @@ public actor SupabaseClientWrapper {
         return try await client.database
             .from("events")
             .update(event)
-            .eq("id", value: id)
+            .eq("id", value: Int(id))
             .select()
             .single()
             .execute()
@@ -75,7 +75,7 @@ public actor SupabaseClientWrapper {
         try await client.database
             .from("events")
             .update(["deleted_at": Date().ISO8601Format()])
-            .eq("id", value: id)
+            .eq("id", value: Int(id))
             .execute()
     }
     
@@ -85,7 +85,7 @@ public actor SupabaseClientWrapper {
             .from("calendars")
             .select()
             .eq("owner_id", value: userID.uuidString)
-            .is("deleted_at", value: "null")
+            .is("deleted_at", value: nil as Bool?)
             .execute()
             .value
     }
@@ -107,22 +107,30 @@ public actor SupabaseClientWrapper {
         return try await client.database
             .from("calendars")
             .update(calendar)
-            .eq("id", value: id)
+            .eq("id", value: Int(id))
             .select()
             .single()
             .execute()
             .value
     }
     
+    public func deleteCalendar(id: Int64) async throws {
+        try await client.database
+            .from("calendars")
+            .update(["deleted_at": Date().ISO8601Format()])
+            .eq("id", value: Int(id))
+            .execute()
+    }
+    
     // MARK: - Settings
     public func fetchNotificationSettings(userID: UUID) async throws -> NotificationSettingsDTO? {
-        try await client.database
+        let response: PostgrestResponse<[NotificationSettingsDTO]> = try await client.database
             .from("notification_settings")
             .select()
             .eq("user_id", value: userID.uuidString)
-            .maybeSingle()
+            .limit(1)
             .execute()
-            .value
+        return response.value.first
     }
     
     public func upsertNotificationSettings(_ settings: NotificationSettingsDTO) async throws -> NotificationSettingsDTO {
@@ -136,13 +144,13 @@ public actor SupabaseClientWrapper {
     }
     
     public func fetchAppearanceSettings(userID: UUID) async throws -> AppearanceSettingsDTO? {
-        try await client.database
+        let response: PostgrestResponse<[AppearanceSettingsDTO]> = try await client.database
             .from("appearance_settings")
             .select()
             .eq("user_id", value: userID.uuidString)
-            .maybeSingle()
+            .limit(1)
             .execute()
-            .value
+        return response.value.first
     }
     
     public func upsertAppearanceSettings(_ settings: AppearanceSettingsDTO) async throws -> AppearanceSettingsDTO {
@@ -176,6 +184,44 @@ public struct EventDTO: Codable {
     public let updatedAt: Date?
     public let deletedAt: Date?
     
+    public init(
+        id: Int64? = nil,
+        userID: UUID,
+        calendarID: Int64,
+        title: String,
+        startAt: Date,
+        endAt: Date,
+        allDay: Bool,
+        timeZone: String?,
+        location: String?,
+        memo: String?,
+        url: String?,
+        recurrenceRule: String?,
+        colorOverride: String?,
+        onlineMeetingLink: String?,
+        createdAt: Date?,
+        updatedAt: Date?,
+        deletedAt: Date?
+    ) {
+        self.id = id
+        self.userID = userID
+        self.calendarID = calendarID
+        self.title = title
+        self.startAt = startAt
+        self.endAt = endAt
+        self.allDay = allDay
+        self.timeZone = timeZone
+        self.location = location
+        self.memo = memo
+        self.url = url
+        self.recurrenceRule = recurrenceRule
+        self.colorOverride = colorOverride
+        self.onlineMeetingLink = onlineMeetingLink
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
+    }
+    
     enum CodingKeys: String, CodingKey {
         case id, title, location, memo, url
         case userID = "user_id"
@@ -204,6 +250,30 @@ public struct CalendarDTO: Codable {
     public let createdAt: Date?
     public let updatedAt: Date?
     public let deletedAt: Date?
+    
+    public init(
+        id: Int64? = nil,
+        ownerID: UUID,
+        name: String,
+        colorKey: String,
+        isPrimary: Bool,
+        isDefaultForNewEvents: Bool,
+        isShared: Bool,
+        createdAt: Date?,
+        updatedAt: Date?,
+        deletedAt: Date?
+    ) {
+        self.id = id
+        self.ownerID = ownerID
+        self.name = name
+        self.colorKey = colorKey
+        self.isPrimary = isPrimary
+        self.isDefaultForNewEvents = isDefaultForNewEvents
+        self.isShared = isShared
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
+    }
     
     enum CodingKeys: String, CodingKey {
         case id, name

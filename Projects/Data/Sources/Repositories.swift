@@ -1,4 +1,7 @@
 import Foundation
+import Core
+import SwiftDataClient
+import SupabaseClient
 
 public actor EventRepository {
     private let swiftDataClient: SwiftDataClient
@@ -105,7 +108,7 @@ public actor EventRepository {
                 existingEntity.url = domain.url
                 existingEntity.updatedAt = domain.updatedAt
                 existingEntity.pendingSync = false
-                try await swiftDataClient.updateEvent(existingEntity)
+                try await swiftDataClient.updateEvent(existingEntity, markPending: false)
             } else {
                 // Create new
                 let newEntity = EventEntity.fromDomain(domain)
@@ -145,6 +148,46 @@ public actor CalendarRepository {
         return entity.toDomain()
     }
     
+    public func updateCalendar(_ calendar: CalendarModel) async throws -> CalendarModel {
+        guard let remoteID = calendar.id,
+              let entity = try await swiftDataClient.getCalendar(remoteID: remoteID) else {
+            throw RepositoryError.notFound
+        }
+        
+        entity.name = calendar.name
+        entity.colorKey = calendar.colorKey
+        entity.isPrimary = calendar.isPrimary
+        entity.isDefaultForNewEvents = calendar.isDefaultForNewEvents
+        entity.updatedAt = Date()
+        entity.pendingSync = true
+        try await swiftDataClient.updateCalendar(entity)
+        
+        let payload = try JSONEncoder().encode(CalendarDTO.fromDomain(calendar))
+        try await swiftDataClient.addToOutbox(
+            entityType: "calendar",
+            entityLocalID: entity.localID,
+            operation: "update",
+            payload: payload
+        )
+        
+        return entity.toDomain()
+    }
+    
+    public func deleteCalendar(_ id: Int64) async throws {
+        guard let entity = try await swiftDataClient.getCalendar(remoteID: id) else {
+            throw RepositoryError.notFound
+        }
+        try await swiftDataClient.deleteCalendar(entity)
+        
+        let payload = try JSONEncoder().encode(["id": id])
+        try await swiftDataClient.addToOutbox(
+            entityType: "calendar",
+            entityLocalID: entity.localID,
+            operation: "delete",
+            payload: payload
+        )
+    }
+    
     public func syncCalendarsFromServer(userID: UUID) async throws {
         let dtos = try await supabaseClient.fetchCalendars(userID: userID)
         
@@ -159,6 +202,7 @@ public actor CalendarRepository {
                 existingEntity.isDefaultForNewEvents = domain.isDefaultForNewEvents
                 existingEntity.updatedAt = domain.updatedAt
                 existingEntity.pendingSync = false
+                try await swiftDataClient.updateCalendar(existingEntity, markPending: false)
             } else {
                 let newEntity = CalendarEntity.fromDomain(domain)
                 newEntity.pendingSync = false
