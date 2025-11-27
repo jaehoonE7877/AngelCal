@@ -21,7 +21,7 @@
 **Purpose**: 모든 스토리의 공통 기반 확보; 기존 코드 재사용을 우선하고 불필요한 추상화 추가 금지
 
 - [ ] T005 Core 모듈에 도메인 모델 스텁 보강(User/Calendar/Event 등) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Core/Sources/DomainModels.swift`
-- [ ] T006 Data 모듈에 Repository 프로토콜 초안 정의(Event/Calendar/Settings) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Core/Sources/Repositories.swift`
+- [ ] T006 Core 모듈에 Repository 프로토콜 초안 정의(Event/Calendar/Settings) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Core/Sources/Repositories.swift`
 - [ ] T007 SupabaseClient 모듈 세션/요청 래퍼 기본 구현(기존 코드 있으면 보강) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/SupabaseClient/Sources/SupabaseClient.swift`
 - [ ] T008 SwiftDataClient 컨테이너 초기화와 fetch/save 헬퍼 추가 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/SwiftDataClient/Sources/SwiftDataStack.swift`
 - [ ] T009 Data 모듈에 OutboxEntity 및 OutboxService 스켈레톤 작성(삭제 대신 감싸기) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Data/Sources/Outbox.swift`
@@ -104,7 +104,7 @@
 
 ### Implementation for User Story 4
 - [ ] T028 [US4] SearchFeature State에 query/dateRange/calendarFilter/results 정의 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureSearch/Sources/SearchFeature.swift`
-- [ ] T029 [P] [US4] 로컬 인덱스 기반 검색 쿼리(LOWER(title+notes+location)) 구현 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Data/Sources/SearchRepository.swift`
+- [ ] T029 [P] [US4] 로컬 인덱스 기반 검색 쿼리(LOWER(title+memo+location+url)) 구현 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Data/Sources/SearchRepository.swift`
 - [ ] T030 [P] [US4] Search 결과 리스트 뷰와 정렬 옵션(UI) 추가 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureSearch/Sources/SearchView.swift`
 - [ ] T031 [US4] 검색 결과에서 EventDetail로 딥링크 라우팅 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureSearch/Sources/SearchNavigation.swift`
 - [ ] T032 [US4] 필요 시 최근 범위 Pull 트리거(옵션) 연결 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Core/Sources/SyncClient.swift`
