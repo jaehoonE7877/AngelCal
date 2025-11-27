@@ -27,11 +27,11 @@
 - [X] T009 Data 모듈에 OutboxEntity 및 OutboxService 스켈레톤 작성(삭제 대신 감싸기) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Data/Sources/Outbox.swift`
 - [X] T010 DesignSystem 공통 컴포넌트 베이스(ViewModifiers, Buttons) 생성 또는 기존 재정리 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/DesignSystem/Sources/Components.swift`
 - [X] T011 App 루트에 AppFeature Store 세팅 및 탭 컨테이너 배선(기존 뷰 재사용) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/App/Sources/AppFeature.swift`
-- [ ] T037 초기 동기화 pullAll 및 pullRange 트리거 배선(AppFeature onAppear, 설정 강제 동기화 포함) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Core/Sources/SyncClient.swift`
-- [ ] T038 네트워크 변화/백그라운드 task 기반 Outbox Push & Pull 실행 로직 구현 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Data/Sources/SyncService.swift`
-- [ ] T039 LWW 충돌 처리(updated_at 비교) 및 remoteId 매핑 보강 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Data/Sources/SyncService.swift`
-- [ ] T040 동기화 실패 백오프/재시도·lastError 기록 및 설정 화면 노출용 상태 훅 추가 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Data/Sources/Outbox.swift`
-- [ ] T041 초기 진입 전 최소 데이터 확보(캘린더/이벤트/설정 preload) 보장 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/App/Sources/AppFeature.swift`
+- [X] T037 초기 동기화 pullAll 및 pullRange 트리거 배선(AppFeature onAppear, 설정 강제 동기화 포함) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Core/Sources/SyncClient.swift`
+- [X] T038 네트워크 변화/백그라운드 task 기반 Outbox Push & Pull 실행 로직 구현 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Data/Sources/SyncService.swift`
+- [X] T039 LWW 충돌 처리(updated_at 비교) 및 remoteId 매핑 보강 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Data/Sources/Repositories.swift`
+- [X] T040 동기화 실패 백오프/재시도·lastError 기록 및 설정 화면 노출용 상태 훅 추가 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Data/Sources/Outbox.swift`
+- [X] T041 초기 진입 전 최소 데이터 확보(캘린더/이벤트/설정 preload) 보장 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/App/Sources/AppFeature.swift`
 
 **Checkpoint**: Foundational 완료 후 스토리 작업 병행 가능
 

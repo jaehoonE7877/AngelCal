@@ -40,7 +40,11 @@ public actor SyncService {
     public func syncEventsFromServer(userID: UUID, from: Date, to: Date) async throws {
         try await eventRepository.syncEventsFromServer(userID: userID, from: from, to: to)
     }
-    
+
+    public func syncRange(userID: UUID, from: Date, to: Date) async throws {
+        try await eventRepository.syncEventsFromServer(userID: userID, from: from, to: to)
+    }
+
     public func syncCalendarsFromServer(userID: UUID) async throws {
         try await calendarRepository.syncCalendarsFromServer(userID: userID)
     }

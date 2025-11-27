@@ -3,16 +3,26 @@ import Dependencies
 
 public extension SyncClient {
     static func live(
-        initialSync: @escaping @Sendable (_ userID: UUID) async throws -> Void,
-        pullRange: @escaping @Sendable (_ userID: UUID, _ from: Date, _ to: Date) async throws -> Void,
-        pushPending: @escaping @Sendable () async throws -> Void
+        userProvider: @escaping @Sendable () async throws -> UUID,
+        syncService: SyncService
     ) -> Self {
         .init(
-            syncAll: { try await initialSync(UUID()) },
-            syncEvents: { /* placeholder: use pullRange with default window */ },
-            syncCalendars: { /* handled inside initialSync */ },
-            syncSettings: { /* no-op skeleton */ },
-            processPendingOutbox: { try await pushPending() }
+            syncAll: {
+                let userID = try await userProvider()
+                try await syncService.initialLoad(userID: userID)
+            },
+            syncEvents: {
+                let userID = try await userProvider()
+                try await syncService.pullFromServer(userID: userID)
+            },
+            syncCalendars: {
+                let userID = try await userProvider()
+                try await syncService.syncCalendarsFromServer(userID: userID)
+            },
+            syncSettings: { },
+            processPendingOutbox: {
+                try await syncService.processPendingOutbox()
+            }
         )
     }
 }

@@ -1,8 +1,12 @@
 import ComposableArchitecture
 import SwiftUI
+import Core
 
 @Reducer
 struct AppFeature {
+    @Dependency(\.authClient) var authClient
+    @Dependency(\.syncClient) var syncClient
+    
     @ObservableState
     struct State: Equatable {
         var calendar = CalendarFeature.State()
@@ -23,8 +27,11 @@ struct AppFeature {
         Reduce { state, action in
             switch action {
             case .onAppear:
-                // TODO: preload minimal data or trigger sync when dependency 주입 완료 시 교체
-                return .none
+                return .run { _ in
+                    let userID = try await authClient.getCurrentUser()?.id ?? UUID()
+                    try await syncClient.syncAll()
+                    // pullRange는 추후 특정 기간에 맞게 호출 예정
+                }
             case .calendar:
                 return .none
             case .path:
