@@ -50,3 +50,5 @@ Projects/App/Sources/Config/Config.swift
 # Docs
 Docs/
 
+# SDD
+.codex/
