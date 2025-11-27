@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import SwiftUI
 import Core
+import FeatureMain
 
 @Reducer
 struct AppFeature {
@@ -9,36 +10,42 @@ struct AppFeature {
     
     @ObservableState
     struct State: Equatable {
-        var calendar = CalendarFeature.State()
+        var main = MainFeature.State()
         var path = StackState<Path.State>()
+        var onboardingCompleted: Bool = false
     }
     
     enum Action {
         case onAppear
-        case calendar(CalendarFeature.Action)
+        case main(MainFeature.Action)
+        case showOnboarding(Bool)
         case path(StackAction<Path.State, Path.Action>)
     }
     
     var body: some ReducerOf<Self> {
-        Scope(state: \.calendar, action: \.calendar) {
-            CalendarFeature()
+        Scope(state: \.
+main, action: \.main) {
+            MainFeature()
         }
         
         Reduce { state, action in
             switch action {
             case .onAppear:
                 return .run { _ in
-                    let userID = try await authClient.getCurrentUser()?.id ?? UUID()
+                    _ = try await authClient.getCurrentUser()?.id
                     try await syncClient.syncAll()
-                    // pullRange는 추후 특정 기간에 맞게 호출 예정
                 }
-            case .calendar:
+            case .main:
+                return .none
+            case .showOnboarding(let completed):
+                state.onboardingCompleted = completed
                 return .none
             case .path:
                 return .none
             }
         }
-        .forEach(\.path, action: \.path)
+        .forEach(\.
+path, action: \.path)
     }
     
     @Reducer
@@ -51,12 +58,23 @@ struct AppView: View {
     @Bindable var store: StoreOf<AppFeature>
     
     var body: some View {
-        NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
-            CalendarView(store: store.scope(state: \.calendar, action: \.calendar))
-        } destination: { store in
-            switch store.case {
-            case .detail(let store):
-                DetailView(store: store)
+        Group {
+            if store.onboardingCompleted {
+                NavigationStack(path: $store.scope(state: \.
+path, action: \.path)) {
+                    MainView(store: store.scope(state: \.
+main, action: \.main))
+                } destination: { store in
+                    switch store.case {
+                    case .detail(let store):
+                        DetailView(store: store)
+                    }
+                }
+            } else {
+                OnboardingView(
+                    store: .init(initialState: .init()) { OnboardingFeature() },
+                    onComplete: { store.send(.showOnboarding(true)) }
+                )
             }
         }
         .task { await store.send(.onAppear).finish() }

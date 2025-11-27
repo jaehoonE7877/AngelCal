@@ -42,11 +42,11 @@
 **Independent Test**: 첫 실행에서 온보딩 슬라이드 완료 후 Apple 로그인 또는 게스트 진입 시 3분 내 메인 탭, 세션 복원 시 바로 메인 진입
 
 ### Implementation for User Story 0
-- [ ] T042 [US0] AppFeature에 auth/온보딩 상태 및 라우팅 로직 추가 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/App/Sources/AppFeature.swift`
-- [ ] T043 [US0] 온보딩 슬라이드 뷰 구현(SCR-02) 및 완료 플래그 저장 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureMain/Sources/OnboardingView.swift`
-- [ ] T044 [US0] Sign in with Apple + Supabase Auth 연동, 세션 재개 처리 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Core/Sources/Clients.swift`
-- [ ] T045 [US0] 로그인 직후 기본 캘린더/설정 시드 및 프로필 fetch `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Data/Sources/SeedService.swift`
-- [ ] T046 [US0] 게스트 모드 시작 및 로그인 시 로컬 데이터 마이그레이션(Outbox 업로드) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Data/Sources/MigrationService.swift`
+- [X] T042 [US0] AppFeature에 auth/온보딩 상태 및 라우팅 로직 추가 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/App/Sources/AppFeature.swift`
+- [X] T043 [US0] 온보딩 슬라이드 뷰 구현(SCR-02) 및 완료 플래그 저장 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureMain/Sources/OnboardingView.swift`
+- [X] T044 [US0] Sign in with Apple + Supabase Auth 연동, 세션 재개 처리 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Core/Sources/Clients.swift`
+- [X] T045 [US0] 로그인 직후 기본 캘린더/설정 시드 및 프로필 fetch `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Data/Sources/SeedService.swift`
+- [X] T046 [US0] 게스트 모드 시작 및 로그인 시 로컬 데이터 마이그레이션(Outbox 업로드) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Data/Sources/MigrationService.swift`
 
 **Checkpoint**: 온보딩/로그인 경로가 동작하고 기본 데이터가 준비된 상태로 메인 진입
 
@@ -57,11 +57,11 @@
 **Independent Test**: 온보딩 후 3탭 이내 오늘/이번 주 확인, 월↔주 전환 시 선택 날짜 유지, 리스트가 선택 날짜와 동기화
 
 ### Implementation for User Story 1
-- [ ] T012 [US1] MainFeature에 `selectedDate`, `viewMode` 상태·액션 정의(기존 상태 재사용 가능 여부 확인) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureMain/Sources/MainFeature.swift`
-- [ ] T013 [US1] CalendarFeature 월/주 전환 뷰 구현 및 스와이프 제스처 연결(가능하면 기존 컴포넌트 재활용) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureCalendar/Sources/CalendarFeatureView.swift`
-- [ ] T014 [P] [US1] CalendarFeature Reducer에 날짜 선택→DayListFeature 연동 로직 추가 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureCalendar/Sources/CalendarFeature.swift`
-- [ ] T015 [P] [US1] DayListFeature에서 선택 날짜/기간 이벤트 로컬 fetch 구현(기존 쿼리 헬퍼 사용) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureCalendar/Sources/DayListFeature.swift`
-- [ ] T016 [US1] 캘린더 당겨서 새로고침→SyncClient.pullRange(month span) 트리거 배선 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Core/Sources/SyncClient.swift`
+- [X] T012 [US1] MainFeature에 `selectedDate`, `viewMode` 상태·액션 정의(기존 상태 재사용 가능 여부 확인) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureMain/Sources/MainFeature.swift`
+- [X] T013 [US1] CalendarFeature 월/주 전환 뷰 구현 및 스와이프 제스처 연결(가능하면 기존 컴포넌트 재활용) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureCalendar/Sources/CalendarFeatureView.swift`
+- [X] T014 [P] [US1] CalendarFeature Reducer에 날짜 선택→DayListFeature 연동 로직 추가 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureCalendar/Sources/CalendarFeature.swift`
+- [X] T015 [P] [US1] DayListFeature에서 선택 날짜/기간 이벤트 로컬 fetch 구현(기존 쿼리 헬퍼 사용) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureCalendar/Sources/DayListFeature.swift`
+- [X] T016 [US1] 캘린더 당겨서 새로고침→SyncClient.pullRange(month span) 트리거 배선 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Core/Sources/SyncClient.swift`
 - [ ] T017 [US1] 오늘 날짜 하이라이트 및 색상 토큰 적용(DesignSystem) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/DSKit/Sources/CalendarStyles.swift`
 
 **Checkpoint**: 월/주 전환 및 일자 리스트가 동작하고 오늘/이번 주 파악 가능

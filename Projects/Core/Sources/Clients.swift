@@ -89,20 +89,20 @@ extension CalendarClient: TestDependencyKey {
 
 extension AuthClient: TestDependencyKey {
     public static var testValue: AuthClient = .init(
-        signInWithApple: { _ in try await _unimplementedThrowing() },
-        signOut: { try await _unimplementedThrowing() },
-        getCurrentUser: { try await _unimplementedThrowing() },
-        isAuthenticated: { _unimplemented() }
+        signInWithApple: { _ in UserProfile(id: UUID(), locale: "ko-KR") },
+        signOut: { },
+        getCurrentUser: { UserProfile(id: UUID(), locale: "ko-KR") },
+        isAuthenticated: { true }
     )
 }
 
 extension SyncClient: TestDependencyKey {
     public static var testValue: SyncClient = .init(
-        syncAll: { try await _unimplementedThrowing() },
-        syncEvents: { try await _unimplementedThrowing() },
-        syncCalendars: { try await _unimplementedThrowing() },
-        syncSettings: { try await _unimplementedThrowing() },
-        processPendingOutbox: { try await _unimplementedThrowing() }
+        syncAll: { },
+        syncEvents: { },
+        syncCalendars: { },
+        syncSettings: { },
+        processPendingOutbox: { }
     )
 }
 
