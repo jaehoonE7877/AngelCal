@@ -1,0 +1,49 @@
+# Xcode
+*.xcodeproj
+*.xcworkspace
+!Tuist/Templates/*.xcodeproj
+!Tuist/Templates/*.xcworkspace
+
+# Tuist
+Tuist/.build
+Tuist/Derived
+Tuist/Dependencies/Carthage
+Tuist/Dependencies/Lockfiles
+Tuist/Dependencies/SwiftPackageManager
+
+# Swift Package Manager
+.build/
+Packages/
+Package.pins
+Package.resolved
+*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm
+
+# CocoaPods
+Pods/
+Podfile.lock
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Misc
+.DS_Store
+*.swp
+*~
+.idea/
+.vscode/
+
+# Derived Data
+DerivedData/
+
+# User Settings
+*.xcuserdata/
+*.xccheckout
+*.moved-aside
+*.xcuserstate
+
+# Config (Secrets)
+Projects/App/Sources/Config/Config.swift
+
