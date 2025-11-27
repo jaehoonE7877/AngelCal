@@ -46,6 +46,7 @@ DerivedData/
 
 # Config (Secrets)
 Projects/App/Sources/Config/Config.swift
+Projects/App/Secrets.xcconfig
 
 # Docs
 Docs/
