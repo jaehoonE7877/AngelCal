@@ -4,7 +4,15 @@ let workspace = Workspace(
     name: "AngelCal",
     projects: [
         "Projects/App",
+        "Projects/Core",
+        "Projects/Data",
         "Projects/DSKit",
-        // We will add more projects here as we create them
+        "Projects/Shared",
+        "Projects/SupabaseClient",
+        "Projects/SwiftDataClient",
+        "Projects/Features/FeatureMain",
+        "Projects/Features/FeatureCalendar",
+        "Projects/Features/FeatureSearch",
+        "Projects/Features/FeatureSettings",
     ]
 )

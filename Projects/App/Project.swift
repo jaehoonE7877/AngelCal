@@ -2,6 +2,10 @@ import ProjectDescription
 
 let project = Project(
     name: "AngelCal",
+    options: .options(
+        defaultKnownRegions: ["ko"],
+        xcodeProjectName: "AngelCal"
+    ),
     targets: [
         .target(
             name: "AngelCal",
@@ -22,10 +26,12 @@ let project = Project(
                 "Resources",
             ],
             dependencies: [
+                .project(target: "FeatureMain", path: "../Features/FeatureMain"),
                 .project(target: "DSKit", path: "../DSKit"),
                 .external(name: "ComposableArchitecture"),
                 .external(name: "Supabase"),
-            ]
+            ],
+            settings: Settings.settings(base: .init().automaticCodeSigning(devTeam: "RFHV927M8S"))
         )
     ]
 )
