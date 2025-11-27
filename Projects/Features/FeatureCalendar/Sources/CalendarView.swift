@@ -1,6 +1,8 @@
 import SwiftUI
 import ComposableArchitecture
 import DSKit
+import Core
+import FeatureEventEdit
 
 public struct CalendarView: View {
     @Bindable public var store: StoreOf<CalendarFeature>
@@ -20,17 +22,18 @@ public struct CalendarView: View {
                     .bold()
                 Spacer()
                 Button("새로고침") { store.send(.pullToRefresh) }
+                Button("추가") { store.send(.setEventEditPresented(true)) }
             }
             .padding(.horizontal)
             
             LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(0..<28, id: \.
-self) { idx in
+                ForEach(0..<28, id: \.self) { idx in
                     let date = Calendar.current.date(byAdding: .day, value: idx, to: startOfWeek(for: store.selectedDate)) ?? store.selectedDate
                     Text(shortDay(date))
                         .frame(maxWidth: .infinity)
                         .padding(8)
-                        .background(isToday(date) ? Color(Tokens.Color.accent) : Color.clear)
+                        .background(CalendarCellStyle.background(isToday: isToday(date)))
+                        .foregroundStyle(CalendarCellStyle.textColor(isToday: isToday(date)))
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                         .onTapGesture { store.send(.setDate(date)) }
                 }
@@ -38,7 +41,11 @@ self) { idx in
             .padding(.horizontal)
             
             DayListView(store: store.scope(state: \.
-.dayList, action: \.dayList))
+ dayList, action: \.dayList))
+        }
+        .sheet(isPresented: $store.showingEventEdit) {
+            EventEditView(store: store.scope(state: \.
+ eventEditState, action: \.eventEdit))
         }
     }
     

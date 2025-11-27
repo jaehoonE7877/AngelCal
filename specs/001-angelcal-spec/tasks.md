@@ -62,7 +62,7 @@
 - [X] T014 [P] [US1] CalendarFeature Reducer에 날짜 선택→DayListFeature 연동 로직 추가 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureCalendar/Sources/CalendarFeature.swift`
 - [X] T015 [P] [US1] DayListFeature에서 선택 날짜/기간 이벤트 로컬 fetch 구현(기존 쿼리 헬퍼 사용) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureCalendar/Sources/DayListFeature.swift`
 - [X] T016 [US1] 캘린더 당겨서 새로고침→SyncClient.pullRange(month span) 트리거 배선 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Core/Sources/SyncClient.swift`
-- [ ] T017 [US1] 오늘 날짜 하이라이트 및 색상 토큰 적용(DesignSystem) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/DSKit/Sources/CalendarStyles.swift`
+- [X] T017 [US1] 오늘 날짜 하이라이트 및 색상 토큰 적용(DesignSystem) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/DSKit/Sources/CalendarStyles.swift`
 
 **Checkpoint**: 월/주 전환 및 일자 리스트가 동작하고 오늘/이번 주 파악 가능
 

@@ -9,6 +9,8 @@ public struct CalendarFeature {
         public var selectedDate: Date = Date()
         public var viewMode: ViewMode = .month
         public var dayList: DayListFeature.State = .init()
+        public var showingEventEdit: Bool = false
+        public var eventEditState: EventEditFeature.State = .init()
         public init() {}
     }
     
@@ -17,6 +19,8 @@ public struct CalendarFeature {
         case setViewMode(ViewMode)
         case pullToRefresh
         case dayList(DayListFeature.Action)
+        case setEventEditPresented(Bool)
+        case eventEdit(EventEditFeature.Action)
     }
     
     @Dependency(\.syncClient) var syncClient
@@ -26,8 +30,12 @@ public struct CalendarFeature {
     
     public var body: some ReducerOf<Self> {
         Scope(state: \.
-.dayList, action: \.dayList) {
+ dayList, action: \.dayList) {
             DayListFeature()
+        }
+        Scope(state: \.
+ eventEditState, action: \.eventEdit) {
+            EventEditFeature()
         }
         Reduce { state, action in
             switch action {
@@ -38,7 +46,6 @@ public struct CalendarFeature {
                 state.viewMode = mode
                 return .none
             case .pullToRefresh:
-                // month span: current month
                 let now = state.selectedDate
                 return .run { _ in
                     var cal = Calendar.current
@@ -47,10 +54,15 @@ public struct CalendarFeature {
                     let end = cal.date(byAdding: .month, value: 1, to: start) ?? now
                     try await syncClient.syncEvents()
                     try await syncClient.processPendingOutbox()
-                    // Optionally pull range with start/end if syncClient exposes
                     _ = (start, end)
                 }
             case .dayList:
+                return .none
+            case .setEventEditPresented(let presented):
+                state.showingEventEdit = presented
+                if presented == false { state.eventEditState = .init() }
+                return .none
+            case .eventEdit:
                 return .none
             }
         }
