@@ -10,6 +10,7 @@ struct AppFeature {
     }
     
     enum Action {
+        case onAppear
         case calendar(CalendarFeature.Action)
         case path(StackAction<Path.State, Path.Action>)
     }
@@ -21,6 +22,9 @@ struct AppFeature {
         
         Reduce { state, action in
             switch action {
+            case .onAppear:
+                // TODO: preload minimal data or trigger sync when dependency 주입 완료 시 교체
+                return .none
             case .calendar:
                 return .none
             case .path:
@@ -48,6 +52,7 @@ struct AppView: View {
                 DetailView(store: store)
             }
         }
+        .task { await store.send(.onAppear).finish() }
     }
 }
 

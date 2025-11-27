@@ -10,23 +10,23 @@
 ## Phase 1: Setup (Shared Infrastructure)
 **Purpose**: 프로젝트 초기화 및 현 코드 재사용 원칙을 반영한 기본 환경 준비
 
-- [ ] T001 기존 모듈·코드 인벤토리 작성(재사용 후보 표시) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Docs/inventory.md`
-- [ ] T002 Tuist 설정 점검 및 `Project.swift` 갱신(현 모듈 유지, 새 모듈 최소 추가) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Project.swift`
-- [ ] T003 [P] SwiftLint·SwiftFormat 설정 배치 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Configs/linters/.swiftlint.yml`
-- [ ] T004 [P] DSKit 기본 토큰 파일 생성 또는 보강 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/DSKit/Sources/Tokens.swift`
+- [X] T001 기존 모듈·코드 인벤토리 작성(재사용 후보 표시) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Docs/inventory.md`
+- [X] T002 Tuist 설정 점검 및 `Project.swift` 갱신(현 모듈 유지, 새 모듈 최소 추가) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Project.swift`
+- [X] T003 [P] SwiftLint·SwiftFormat 설정 배치 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Configs/linters/.swiftlint.yml`
+- [X] T004 [P] DSKit 기본 토큰 파일 생성 또는 보강 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/DSKit/Sources/Tokens.swift`
 
 ---
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 **Purpose**: 모든 스토리의 공통 기반 확보; 기존 코드 재사용을 우선하고 불필요한 추상화 추가 금지
 
-- [ ] T005 Core 모듈에 도메인 모델 스텁 보강(User/Calendar/Event 등) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Core/Sources/DomainModels.swift`
-- [ ] T006 Core 모듈에 Repository 프로토콜 초안 정의(Event/Calendar/Settings) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Core/Sources/Repositories.swift`
-- [ ] T007 SupabaseClient 모듈 세션/요청 래퍼 기본 구현(기존 코드 있으면 보강) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/SupabaseClient/Sources/SupabaseClient.swift`
-- [ ] T008 SwiftDataClient 컨테이너 초기화와 fetch/save 헬퍼 추가 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/SwiftDataClient/Sources/SwiftDataStack.swift`
-- [ ] T009 Data 모듈에 OutboxEntity 및 OutboxService 스켈레톤 작성(삭제 대신 감싸기) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Data/Sources/Outbox.swift`
-- [ ] T010 DesignSystem 공통 컴포넌트 베이스(ViewModifiers, Buttons) 생성 또는 기존 재정리 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/DesignSystem/Sources/Components.swift`
-- [ ] T011 App 루트에 AppFeature Store 세팅 및 탭 컨테이너 배선(기존 뷰 재사용) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/App/Sources/AppFeatureRoot.swift`
+- [X] T005 Core 모듈에 도메인 모델 스텁 보강(User/Calendar/Event 등) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Core/Sources/DomainModels.swift`
+- [X] T006 Core 모듈에 Repository 프로토콜 초안 정의(Event/Calendar/Settings) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Core/Sources/Repositories.swift`
+- [X] T007 SupabaseClient 모듈 세션/요청 래퍼 기본 구현(기존 코드 있으면 보강) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/SupabaseClient/Sources/SupabaseClient.swift`
+- [X] T008 SwiftDataClient 컨테이너 초기화와 fetch/save 헬퍼 추가 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/SwiftDataClient/Sources/SwiftDataStack.swift`
+- [X] T009 Data 모듈에 OutboxEntity 및 OutboxService 스켈레톤 작성(삭제 대신 감싸기) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Data/Sources/Outbox.swift`
+- [X] T010 DesignSystem 공통 컴포넌트 베이스(ViewModifiers, Buttons) 생성 또는 기존 재정리 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/DesignSystem/Sources/Components.swift`
+- [X] T011 App 루트에 AppFeature Store 세팅 및 탭 컨테이너 배선(기존 뷰 재사용) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/App/Sources/AppFeature.swift`
 - [ ] T037 초기 동기화 pullAll 및 pullRange 트리거 배선(AppFeature onAppear, 설정 강제 동기화 포함) `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Core/Sources/SyncClient.swift`
 - [ ] T038 네트워크 변화/백그라운드 task 기반 Outbox Push & Pull 실행 로직 구현 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Data/Sources/SyncService.swift`
 - [ ] T039 LWW 충돌 처리(updated_at 비교) 및 remoteId 매핑 보강 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Data/Sources/SyncService.swift`

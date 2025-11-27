@@ -1,0 +1,25 @@
+# AngelCal 모듈 인벤토리 (2025-11-28)
+
+- App
+  - 위치: Projects/App
+  - 주요 파일: AppFeature.swift, AngelCalApp.swift, Config/
+- Core
+  - 위치: Projects/Core
+  - 주요 파일: Models.swift, Clients.swift
+- Data
+  - 위치: Projects/Data
+  - 주요 파일: Repositories.swift, SyncService.swift
+- SwiftDataClient
+  - 위치: Projects/SwiftDataClient
+  - 주요 파일: SwiftDataClient.swift, Entities.swift
+- SupabaseClient
+  - 위치: Projects/SupabaseClient
+  - 주요 파일: SupabaseClientWrapper.swift
+- DSKit
+  - 위치: Projects/DSKit
+  - 주요 파일: Colors.swift, Typography.swift, AngelCalTheme.swift
+- Feature 모듈
+  - FeatureCalendar, FeatureMain, FeatureSearch, FeatureSettings (Projects/Features/...)
+- Shared
+  - 위치: Projects/Shared
+  - 목적: 공통 헬퍼 (현재 확인 필요)

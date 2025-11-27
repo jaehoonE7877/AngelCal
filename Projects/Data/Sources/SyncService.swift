@@ -46,7 +46,7 @@ public actor SyncService {
     }
     
     // MARK: - Pull from Server
-    private func pullFromServer(userID: UUID) async throws {
+    public func pullFromServer(userID: UUID) async throws {
         // Sync calendars first
         try await calendarRepository.syncCalendarsFromServer(userID: userID)
         
@@ -168,5 +168,19 @@ public actor SyncService {
     
     private func findCalendarEntity(localID: UUID) async throws -> CalendarEntity? {
         try await swiftDataClient.getCalendar(localID: localID)
+    }
+
+    // MARK: - Triggers
+    public func initialLoad(userID: UUID) async throws {
+        try await syncAll(userID: userID)
+    }
+    
+    public func handleConnectivityRestored(userID: UUID) async throws {
+        try await processPendingOutbox()
+        try await pullFromServer(userID: userID)
+    }
+    
+    public func handleBackgroundRefresh(userID: UUID) async throws {
+        try await processPendingOutbox()
     }
 }

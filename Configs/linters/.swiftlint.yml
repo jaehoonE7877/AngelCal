@@ -1,0 +1,17 @@
+# 기본 SwiftLint 설정 (경량)
+disabled_rules:
+  - trailing_whitespace
+  - line_length
+  - identifier_name
+
+opt_in_rules:
+  - implicit_return
+  - redundant_optional_initialization
+  - unused_import
+
+excluded:
+  - DerivedData
+  - .build
+  - Pods
+  - Carthage
+  - Tuist
