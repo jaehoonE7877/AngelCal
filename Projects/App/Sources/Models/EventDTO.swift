@@ -10,6 +10,12 @@ struct EventDTO: Equatable, Identifiable {
     var url: URL?
     var isAllDay: Bool
     
+    var calendarId: UUID?
+    var recurrenceRule: String?
+    var colorOverride: String?
+    var attendees: [String]?
+    var onlineMeetingLink: URL?
+    
     init(from event: Event) {
         self.id = event.id
         self.title = event.title
@@ -19,5 +25,10 @@ struct EventDTO: Equatable, Identifiable {
         self.notes = event.notes
         self.url = event.url
         self.isAllDay = event.isAllDay
+        self.calendarId = event.calendarId
+        self.recurrenceRule = event.recurrenceRule
+        self.colorOverride = event.colorOverride
+        self.attendees = event.attendees
+        self.onlineMeetingLink = event.onlineMeetingLink
     }
 }

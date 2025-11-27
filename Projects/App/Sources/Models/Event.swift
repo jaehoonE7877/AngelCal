@@ -18,6 +18,13 @@ final class Event {
     var isSynced: Bool = false
     var userId: UUID? // Owner ID from Supabase
     
+    // New fields
+    var calendarId: UUID?
+    var recurrenceRule: String? // iCal RRULE format
+    var colorOverride: String? // Hex string
+    var attendees: [String]? // List of email or names
+    var onlineMeetingLink: URL?
+    
     init(
         id: UUID = UUID(),
         title: String,
@@ -27,7 +34,12 @@ final class Event {
         notes: String? = nil,
         url: URL? = nil,
         isAllDay: Bool = false,
-        userId: UUID? = nil
+        userId: UUID? = nil,
+        calendarId: UUID? = nil,
+        recurrenceRule: String? = nil,
+        colorOverride: String? = nil,
+        attendees: [String]? = nil,
+        onlineMeetingLink: URL? = nil
     ) {
         self.id = id
         self.title = title
@@ -38,6 +50,11 @@ final class Event {
         self.url = url
         self.isAllDay = isAllDay
         self.userId = userId
+        self.calendarId = calendarId
+        self.recurrenceRule = recurrenceRule
+        self.colorOverride = colorOverride
+        self.attendees = attendees
+        self.onlineMeetingLink = onlineMeetingLink
         self.createdAt = Date()
         self.updatedAt = Date()
     }

@@ -7,21 +7,14 @@ struct CalendarFeature {
     struct State: Equatable {
         var currentDate: Date = Date()
         var selectedDate: Date = Date()
-        var viewMode: ViewMode = .month
         var events: [EventDTO] = []
         @Presents var addEvent: EventFormFeature.State?
         @Presents var eventDetail: EventDetailFeature.State?
-        
-        enum ViewMode: Equatable {
-            case month
-            case week
-        }
     }
     
     enum Action {
-        case toggleViewMode
-        case nextMonth
-        case previousMonth
+        case nextPage
+        case previousPage
         case goToday
         case selectDate(Date)
         case addEventButtonTapped
@@ -37,18 +30,18 @@ struct CalendarFeature {
     var body: some ReducerOf<Self> {
         Reduce { state, action in
             switch action {
-            case .toggleViewMode:
-                state.viewMode = state.viewMode == .month ? .week : .month
-                return .none
-                
-            case .nextMonth:
+            case .nextPage:
                 let calendar = Calendar.current
                 let newDate = calendar.date(byAdding: .month, value: 1, to: state.currentDate) ?? state.currentDate
                 state.currentDate = newDate
+                // Only update selectedDate if we want the selection to follow the page
+                // For now, let's keep selectedDate as is, unless it's out of view?
+                // Minical behavior: selection stays on the date you clicked, but if you scroll far, maybe it should update?
+                // Let's update selectedDate to the first day of the new page to avoid confusion
                 state.selectedDate = newDate
                 return .send(.fetchEvents)
                 
-            case .previousMonth:
+            case .previousPage:
                 let calendar = Calendar.current
                 let newDate = calendar.date(byAdding: .month, value: -1, to: state.currentDate) ?? state.currentDate
                 state.currentDate = newDate

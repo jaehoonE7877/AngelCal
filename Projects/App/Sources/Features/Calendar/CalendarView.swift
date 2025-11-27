@@ -5,95 +5,104 @@ import DSKit
 struct CalendarView: View {
     @Bindable var store: StoreOf<CalendarFeature>
     
+    private let calendarHeight: CGFloat = 360
+    
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
+        ZStack(alignment: .top) {
             Color.background.ignoresSafeArea()
             
             VStack(spacing: 12) {
-                header
-                    .padding(.horizontal, 16)
-                    .padding(.top, 4)
-                
-                Group {
-                    if store.viewMode == .month {
-                        MonthView(
-                            currentDate: store.currentDate,
-                            selectedDate: store.selectedDate,
-                            events: store.events,
-                            onSelectDate: { store.send(.selectDate($0)) }
-                        )
-                    } else {
-                        WeekView(
-                            currentDate: store.currentDate,
-                            events: store.events,
-                            selectedDate: store.selectedDate,
-                            onSelectDate: { store.send(.selectDate($0)) }
-                        )
-                    }
-                }
-                .transition(.opacity.combined(with: .scale))
-                .padding(.horizontal, 16)
-                .padding(.top, 4)
+                MonthView(
+                    currentDate: store.currentDate,
+                    selectedDate: store.selectedDate,
+                    events: store.events,
+                    onSelectDate: { store.send(.selectDate($0)) }
+                )
+                .id(pageID(for: store.currentDate))
+                .transition(.asymmetric(
+                    insertion: .move(edge: .trailing).combined(with: .opacity),
+                    removal: .move(edge: .leading).combined(with: .opacity)
+                ))
+                .contentShape(Rectangle())
+                .highPriorityGesture(pageDrag, including: .all)
+                .frame(height: calendarHeight, alignment: .top)
+                .clipped()
                 
                 eventList
                     .padding(.horizontal, 12)
-                    .padding(.bottom, 24)
-            }
+        .padding(.bottom, 24)
+    }
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
             
-            addButton
-                .padding(.trailing, 20)
-                .padding(.bottom, 24)
         }
         .onAppear {
             store.send(.fetchEvents)
         }
-    }
-    
-    private var header: some View {
-        VStack(spacing: 14) {
-            // Top bar
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(store.currentDate.formatted(.dateTime.month(.wide)))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigation) {
+                HStack(alignment: .lastTextBaseline, spacing: 6) {
+                    Text(String(format: "%02d", navMonth))
                         .font(AngelTypography.title1(.bold))
-                    Text(store.currentDate.formatted(.dateTime.year()))
+                    Text("\(navYear)")
                         .font(AngelTypography.caption(.medium))
                         .foregroundStyle(Color.angelTextSecondary)
                 }
-                
-                Spacer()
-                
-                HStack(spacing: 12) {
-                    capsuleButton(title: "Today", systemImage: "clock", action: { store.send(.goToday) })
-                    roundIcon("magnifyingglass")
-                    roundIcon("calendar")
-                    roundIcon("gearshape")
-                }
             }
             
-            // View mode and month navigation
-            HStack(spacing: 10) {
-                roundIcon("chevron.left", action: { store.send(.previousMonth) })
-                roundIcon("chevron.right", action: { store.send(.nextMonth) })
-                
-                Spacer()
-                
-                Picker("", selection: .constant(store.viewMode)) {
-                    Text("Month").tag(CalendarFeature.State.ViewMode.month)
-                    Text("Week").tag(CalendarFeature.State.ViewMode.week)
-                }
-                .pickerStyle(.segmented)
-                .frame(width: 160)
-                .colorMultiply(.white)
+            ToolbarItemGroup(placement: .navigationBarTrailing) {
+                capsuleButton(title: "TODAY", systemImage: "clock", action: { store.send(.goToday) })
+                roundIcon("magnifyingglass")
+                roundIcon("calendar")
             }
         }
+    }
+    
+    private var pageDrag: some Gesture {
+        DragGesture(minimumDistance: 8)
+            .onEnded { value in
+                let translation = value.translation.width
+                let predicted = value.predictedEndTranslation.width
+                let effective = abs(predicted) > abs(translation) * 0.7 ? predicted : translation
+                let threshold: CGFloat = 22
+                
+                if effective < -threshold {
+                    withAnimation {
+                        _ = store.send(.nextPage)
+                    }
+                } else if effective > threshold {
+                    withAnimation {
+                        _ = store.send(.previousPage)
+                    }
+                }
+            }
+    }
+    
+    private func pageID(for date: Date) -> String {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month], from: date)
+        return "\(components.year!)-\(components.month!)"
     }
     
     private var eventsForDisplay: [EventDTO] {
         let calendar = Calendar.current
         return store.events.filter { event in
             calendar.isDate(event.startDate, inSameDayAs: store.selectedDate)
-        }.sorted { $0.startDate < $1.startDate }
+        }.sorted { (e1, e2) in
+            if e1.isAllDay != e2.isAllDay {
+                return e1.isAllDay
+            }
+            return e1.startDate < e2.startDate
+        }
+    }
+    
+    private var navMonth: Int {
+        Calendar.current.component(.month, from: store.currentDate)
+    }
+    
+    private var navYear: Int {
+        Calendar.current.component(.year, from: store.currentDate)
     }
     
     private var eventList: some View {
@@ -110,13 +119,17 @@ struct CalendarView: View {
             if eventsForDisplay.isEmpty {
                 HStack {
                     Text("이 날의 일정이 없어요.")
-                        .font(AngelTypography.callout())
-                        .foregroundStyle(Color.angelTextSecondary)
+                        .font(AngelTypography.callout(.medium))
+                        .foregroundStyle(Color.angelTextPrimary)
                     Spacer()
                 }
                 .padding()
-                .background(AngelColors.card)
+                .background(AngelColors.card.opacity(0.95))
                 .cornerRadius(14)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(AngelColors.border, lineWidth: 1.2)
+                )
             } else {
                 VStack(spacing: 10) {
                     ForEach(eventsForDisplay) { event in
@@ -133,20 +146,6 @@ struct CalendarView: View {
         .padding(.bottom, 8)
     }
     
-    private var addButton: some View {
-        Button {
-            store.send(.addEventButtonTapped)
-        } label: {
-            Image(systemName: "plus")
-                .font(.title2.bold())
-                .foregroundStyle(Color.white)
-                .frame(width: 56, height: 56)
-                .background(AngelColors.primary)
-                .clipShape(Circle())
-                .shadow(color: Color.black.opacity(0.25), radius: 10, y: 6)
-        }
-    }
-    
     private var addNewEventRow: some View {
         Button {
             store.send(.addEventButtonTapped)
@@ -155,18 +154,18 @@ struct CalendarView: View {
                 Image(systemName: "plus")
                     .foregroundStyle(Color.angelTextPrimary)
                 Text("새로운 이벤트")
-                    .font(AngelTypography.body())
+                    .font(AngelTypography.body(.semibold))
                     .foregroundStyle(Color.angelTextPrimary)
                 Spacer()
                 Image(systemName: "text.alignleft")
                     .foregroundStyle(Color.angelTextSecondary)
             }
             .padding()
-            .background(AngelColors.card)
+            .background(AngelColors.card.opacity(0.95))
             .cornerRadius(14)
             .overlay(
                 RoundedRectangle(cornerRadius: 14)
-                    .stroke(AngelColors.border, lineWidth: 1)
+                    .stroke(AngelColors.border, lineWidth: 1.2)
             )
         }
         .buttonStyle(.plain)
@@ -216,13 +215,13 @@ struct EventRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(event.startDate, style: event.isAllDay ? .date : .time)
                     .font(AngelTypography.callout(.semibold))
-                    .foregroundStyle(Color.angelTextSecondary)
+                    .foregroundStyle(Color.angelTextPrimary)
                 Text(event.title)
                     .font(AngelTypography.body(.semibold))
                     .foregroundStyle(Color.angelTextPrimary)
                 if let location = event.location, !location.isEmpty {
                     Text(location)
-                        .font(AngelTypography.caption())
+                        .font(AngelTypography.caption(.medium))
                         .foregroundStyle(Color.angelTextSecondary)
                 }
             }
@@ -231,11 +230,11 @@ struct EventRow: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(AngelColors.card)
+                .fill(AngelColors.card.opacity(0.95))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(AngelColors.border, lineWidth: 1)
+                .stroke(AngelColors.border, lineWidth: 1.2)
                 .overlay(
                     Rectangle()
                         .fill(color(for: event))
