@@ -5,7 +5,7 @@
 
 **Tests**: 스펙에서 별도 테스트 선행 요구가 없으므로 테스트 태스크는 포함하지 않는다. 각 스토리의 독립 검증 기준만 기재.
 
-**Organization**: 사용자 스토리별로 작업을 묶어 독립 구현·검증 가능하게 구성한다.
+**Organization**: 사용자 스토리별로 작업을 묶어 독립 구현·검증 가능하게 구성한다. 각 스토리의 독립 검증 기준만 기재.
 
 ## Phase 1: Setup (Shared Infrastructure)
 **Purpose**: 프로젝트 초기화 및 현 코드 재사용 원칙을 반영한 기본 환경 준비
@@ -129,6 +129,21 @@
 
 ---
 
+## Phase 8B: Template 관리 (SCR-08, Priority: P2)
+**Goal**: 템플릿 목록/추가/수정/삭제/정렬을 통해 반복 일정 생성 속도 향상
+**Independent Test**: 템플릿에서 이벤트를 2탭 내 생성 가능, 템플릿 수정·삭제 시 리스트와 생성 기본값에 즉시 반영
+
+### Implementation for Templates
+- [ ] T054 [US6] TemplateListFeature 목록/정렬 뷰 구현 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureTemplate/Sources/TemplateListFeature.swift`
+- [ ] T055 [US6] 템플릿 추가/수정 폼 및 검증 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureTemplate/Sources/TemplateEditFeature.swift`
+- [ ] T056 [US6] 템플릿 삭제/정렬 액션 및 UI 반영 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureTemplate/Sources/TemplateListFeature.swift`
+- [ ] T057 [US6] 이벤트 → 템플릿 저장 플로우 추가 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureEventDetail/Sources/EventDetailFeature.swift`
+- [ ] T058 [US6] 템플릿 기본값을 EventEditFeature에 적용 `/Volumes/jaehoon_ex/jaehoon_ex/Desktop/AngelCal/Projects/Features/FeatureEventEdit/Sources/EventEditFeature.swift`
+
+**Checkpoint**: 템플릿 CRUD 및 이벤트 생성 연동이 동작
+
+---
+
 ## Phase 9: Polish & Cross-Cutting Concerns
 **Purpose**: 전 스토리 품질 보강, 성능/UX 개선, 과도한 변경 없이 기존 자산 최적 활용
 
@@ -145,20 +160,23 @@
 - Polish(Phase 7)는 모든 스토리 완료 후 수행.
 
 ### User Story Completion Order (graph)
-US0 (P1) → US1 (P1) → US2 (P1) → US3 (P2) → US5 (P2) → US4 (P3)
+US0 (P1) → US1 (P1) → US2 (P1) → US3 (P2) → US5 (P2) → US6 (P2) → US4 (P3)
 
 ### Parallel Opportunities
 - [P] 태스크: T003, T004, T014, T015, T019, T021, T024, T025, T029, T030, T033.
 - Foundational 이후 각 스토리는 다른 담당자가 병렬 착수 가능.
 
 ### MVP Scope
-- US1 완료 시점이 MVP. 이후 US2~US5~US4 순으로 가치 확장.
+- US1 완료 시점이 MVP. 이후 US2~US5~US6~US4 순으로 가치 확장.
 
 ### Independent Test Criteria (per story)
+- US0: 첫 실행→온보딩→Apple 로그인/게스트 선택 후 3분 내 메인 탭 도달, 세션 복원 시 바로 메인 진입.
 - US1: 3탭 이내 오늘/이번 주 확인, 월↔주 전환 시 선택 날짜 유지, 리스트가 선택 날짜와 동기화.
 - US2: 오프라인 이벤트 생성 후 즉시 표시, 재연결 시 중복 없이 서버 반영.
 - US3: 시간 변경·복사 후 달력/리스트/알림 동시 갱신, soft delete 후 뷰에서 제외.
 - US4: 키워드+필터 검색 2초 내 결과, 필터 토글 즉시 반응, 결과에서 상세로 이동.
+- US5: 설정 변경 시 메인 화면/위젯/알림이 앱 재시작 없이 즉시 반영.
+- US6: 템플릿으로 2탭 내 이벤트 생성, 템플릿 수정·삭제 시 목록과 기본값에 즉시 반영.
 
 ### Format Validation
 - 모든 태스크가 `- [ ] T### [P?] [US?] 설명 (파일 경로)` 형식을 준수한다.
