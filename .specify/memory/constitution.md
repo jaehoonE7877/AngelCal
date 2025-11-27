@@ -28,6 +28,11 @@
 [PRINCIPLE_5_DESCRIPTION]
 <!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
 
+### 커밋 메시지 규칙 (NON-NEGOTIABLE)
+- 커밋 제목(헤더)은 대문자로 시작하는 타입 접두어를 사용한다(예: `Chore`, `Feat`, `Fix`).
+- 커밋 제목과 본문은 한글로 작성한다. 본문이 있을 경우 모든 문장을 한글로 쓴다.
+- 커밋 본문은 필요 시 추가하며, 없을 경우 비워둘 수 있다. 작성 시 영어 혼용 금지.
+
 ## [SECTION_2_NAME]
 <!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
 
