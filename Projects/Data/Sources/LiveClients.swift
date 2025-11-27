@@ -1,5 +1,7 @@
 import Foundation
 import ComposableArchitecture
+import Core
+import SupabaseClient
 
 // MARK: - Live Implementations
 extension EventClient {
@@ -35,11 +37,10 @@ extension CalendarClient {
                 try await repository.createCalendar(calendar)
             },
             updateCalendar: { calendar in
-                // Implement update
-                calendar
+                try await repository.updateCalendar(calendar)
             },
             deleteCalendar: { id in
-                // Implement delete
+                try await repository.deleteCalendar(id)
             }
         )
     }
@@ -52,13 +53,20 @@ extension SyncClient {
                 try await syncService.syncAll(userID: userID)
             },
             syncEvents: {
-                // Implement specific event sync
+                let now = Date()
+                let calendar = Calendar.current
+                let start = calendar.date(byAdding: .month, value: -1, to: now) ?? now
+                let end = calendar.date(byAdding: .month, value: 2, to: now) ?? now
+                try await syncService.syncEventsFromServer(userID: userID, from: start, to: end)
+                try await syncService.processPendingOutbox()
             },
             syncCalendars: {
-                // Implement specific calendar sync
+                try await syncService.syncCalendarsFromServer(userID: userID)
+                try await syncService.processPendingOutbox()
             },
             syncSettings: {
-                // Implement settings sync
+                // Settings pull/push hooks can be added; for now reuse full sync.
+                try await syncService.syncAll(userID: userID)
             },
             processPendingOutbox: {
                 try await syncService.processPendingOutbox()
@@ -91,8 +99,7 @@ extension AuthClient {
                 )
             },
             isAuthenticated: {
-                let session = try await supabaseClient.getCurrentSession()
-                return session != nil
+                (try? await supabaseClient.getCurrentSession()) != nil
             }
         )
     }
