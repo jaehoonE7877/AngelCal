@@ -16,12 +16,12 @@ public actor SettingsRepository: SettingsRepositorying {
     
     // MARK: - Notification Settings
     public func fetchNotificationSettings(userID: UUID) async throws -> NotificationSettings? {
-        if let cached = try swiftDataClient.getNotificationSettings(userID: userID) {
+        if let cached = try await swiftDataClient.getNotificationSettings(userID: userID) {
             return cached.toDomain()
         }
         if let remote = try await supabaseClient.fetchNotificationSettings(userID: userID) {
             let domain = remote.toDomain(userID: userID)
-            try swiftDataClient.saveNotificationSettings(.fromDomain(domain))
+            try await swiftDataClient.saveNotificationSettings(.fromDomain(domain))
             return domain
         }
         return nil
@@ -30,18 +30,18 @@ public actor SettingsRepository: SettingsRepositorying {
     public func upsertNotificationSettings(_ settings: NotificationSettings) async throws -> NotificationSettings {
         let saved = try await supabaseClient.upsertNotificationSettings(.fromDomain(settings))
         let domain = saved.toDomain(userID: settings.userID)
-        try swiftDataClient.saveNotificationSettings(.fromDomain(domain))
+        try await swiftDataClient.saveNotificationSettings(.fromDomain(domain))
         return domain
     }
     
     // MARK: - Appearance Settings
     public func fetchAppearanceSettings(userID: UUID) async throws -> AppearanceSettings? {
-        if let cached = try swiftDataClient.getAppearanceSettings(userID: userID) {
+        if let cached = try await swiftDataClient.getAppearanceSettings(userID: userID) {
             return cached.toDomain()
         }
         if let remote = try await supabaseClient.fetchAppearanceSettings(userID: userID) {
             let domain = remote.toDomain(userID: userID)
-            try swiftDataClient.saveAppearanceSettings(.fromDomain(domain))
+            try await swiftDataClient.saveAppearanceSettings(.fromDomain(domain))
             return domain
         }
         return nil
@@ -50,7 +50,7 @@ public actor SettingsRepository: SettingsRepositorying {
     public func upsertAppearanceSettings(_ settings: AppearanceSettings) async throws -> AppearanceSettings {
         let saved = try await supabaseClient.upsertAppearanceSettings(.fromDomain(settings))
         let domain = saved.toDomain(userID: settings.userID)
-        try swiftDataClient.saveAppearanceSettings(.fromDomain(domain))
+        try await swiftDataClient.saveAppearanceSettings(.fromDomain(domain))
         return domain
     }
     
@@ -60,7 +60,7 @@ public actor SettingsRepository: SettingsRepositorying {
         for dto in remote {
             try await upsertLocal(dto.toDomain())
         }
-        let configs = try swiftDataClient.fetchWidgetConfigs(userID: userID)
+        let configs = try await swiftDataClient.fetchWidgetConfigs(userID: userID)
         return configs.map { $0.toDomain() }
     }
     
@@ -74,13 +74,13 @@ public actor SettingsRepository: SettingsRepositorying {
     public func deleteWidgetConfig(id: Int64?) async throws {
         guard let id else { return }
         try await supabaseClient.deleteWidgetConfig(id: id)
-        if let entity = try swiftDataClient.getWidgetConfig(remoteID: id) {
-            try swiftDataClient.deleteWidgetConfig(entity)
+        if let entity = try await swiftDataClient.getWidgetConfig(remoteID: id) {
+            try await swiftDataClient.deleteWidgetConfig(entity)
         }
     }
 
     private func upsertLocal(_ config: WidgetConfig) async throws {
-        if let remoteID = config.id, let existing = try swiftDataClient.getWidgetConfig(remoteID: remoteID) {
+        if let remoteID = config.id, let existing = try await swiftDataClient.getWidgetConfig(remoteID: remoteID) {
             existing.widgetIdentifier = config.widgetIdentifier
             existing.widgetType = config.widgetType
             existing.linkedCalendarIDs = config.linkedCalendarIDs
@@ -89,10 +89,10 @@ public actor SettingsRepository: SettingsRepositorying {
             existing.sortOrder = config.sortOrder
             existing.createdAt = config.createdAt
             existing.updatedAt = config.updatedAt
-            try swiftDataClient.updateWidgetConfig(existing, markPending: false)
+            try await swiftDataClient.updateWidgetConfig(existing, markPending: false)
         } else {
             let entity = WidgetConfigEntity.fromDomain(config)
-            try swiftDataClient.saveWidgetConfig(entity)
+            try await swiftDataClient.saveWidgetConfig(entity)
         }
     }
 }

@@ -15,12 +15,12 @@ public actor EventRepository {
     // MARK: - Fetch
     public func fetchEvents(from: Date, to: Date) async throws -> [Event] {
         // First try local
-        let entities = try swiftDataClient.fetchEvents(from: from, to: to)
+        let entities = try await swiftDataClient.fetchEvents(from: from, to: to)
         return entities.map { $0.toDomain() }
     }
     
     public func getEvent(id: Int64) async throws -> Event? {
-        try swiftDataClient.getEvent(remoteID: id)?.toDomain()
+        try await swiftDataClient.getEvent(remoteID: id)?.toDomain()
     }
     
     // MARK: - Create
@@ -30,11 +30,11 @@ public actor EventRepository {
         entity.pendingSync = true
         entity.createdAt = Date()
         entity.updatedAt = Date()
-        try swiftDataClient.saveEvent(entity)
+        try await swiftDataClient.saveEvent(entity)
         
         // 2. Add to outbox for sync
         let payload = try JSONEncoder().encode(EventDTO.fromDomain(event))
-        try swiftDataClient.addToOutbox(
+        try await swiftDataClient.addToOutbox(
             entityType: "event",
             entityLocalID: entity.localID,
             operation: "create",
@@ -51,7 +51,7 @@ public actor EventRepository {
         }
         
         // 1. Update local entity
-        guard let entity = try swiftDataClient.getEvent(remoteID: remoteID) else {
+        guard let entity = try await swiftDataClient.getEvent(remoteID: remoteID) else {
             throw RepositoryError.notFound
         }
         
@@ -64,11 +64,11 @@ public actor EventRepository {
         entity.url = event.url
         entity.colorOverride = event.colorOverride
         
-        try swiftDataClient.updateEvent(entity)
+        try await swiftDataClient.updateEvent(entity)
         
         // 2. Add to outbox
         let payload = try JSONEncoder().encode(EventDTO.fromDomain(event))
-        try swiftDataClient.addToOutbox(
+        try await swiftDataClient.addToOutbox(
             entityType: "event",
             entityLocalID: entity.localID,
             operation: "update",
@@ -80,14 +80,14 @@ public actor EventRepository {
     
     // MARK: - Delete
     public func deleteEvent(_ id: Int64) async throws {
-        guard let entity = try swiftDataClient.getEvent(remoteID: id) else {
+        guard let entity = try await swiftDataClient.getEvent(remoteID: id) else {
             throw RepositoryError.notFound
         }
         
-        try swiftDataClient.deleteEvent(entity)
+        try await swiftDataClient.deleteEvent(entity)
         
         let payload = try JSONEncoder().encode(["id": id])
-        try swiftDataClient.addToOutbox(
+        try await swiftDataClient.addToOutbox(
             entityType: "event",
             entityLocalID: entity.localID,
             operation: "delete",
@@ -97,7 +97,7 @@ public actor EventRepository {
     
     // MARK: - Copy
     public func copyEvent(id: Int64, to newStart: Date) async throws -> Event {
-        guard let entity = try swiftDataClient.getEvent(remoteID: id) else {
+        guard let entity = try await swiftDataClient.getEvent(remoteID: id) else {
             throw RepositoryError.notFound
         }
         let duration = entity.endAt.timeIntervalSince(entity.startAt)
@@ -130,7 +130,7 @@ public actor EventRepository {
             
             // Check if exists locally
             if let remoteID = domain.id,
-               let existingEntity = try swiftDataClient.getEvent(remoteID: remoteID) {
+               let existingEntity = try await swiftDataClient.getEvent(remoteID: remoteID) {
                 // LWW: 서버가 더 최신일 때만 반영
                 if domain.updatedAt > existingEntity.updatedAt {
                     existingEntity.title = domain.title
@@ -142,13 +142,13 @@ public actor EventRepository {
                     existingEntity.url = domain.url
                     existingEntity.updatedAt = domain.updatedAt
                     existingEntity.pendingSync = false
-                    try swiftDataClient.updateEvent(existingEntity, markPending: false)
+                    try await swiftDataClient.updateEvent(existingEntity, markPending: false)
                 }
             } else {
                 // Create new
                 let newEntity = EventEntity.fromDomain(domain)
                 newEntity.pendingSync = false
-                try swiftDataClient.saveEvent(newEntity)
+                try await swiftDataClient.saveEvent(newEntity)
             }
         }
     }
@@ -164,16 +164,16 @@ public actor CalendarRepository {
     }
     
     public func fetchCalendars() async throws -> [CalendarModel] {
-        let entities = try swiftDataClient.fetchCalendars()
+        let entities = try await swiftDataClient.fetchCalendars()
         return entities.map { $0.toDomain() }
     }
     
     public func createCalendar(_ calendar: CalendarModel) async throws -> CalendarModel {
         let entity = CalendarEntity.fromDomain(calendar)
-        try swiftDataClient.saveCalendar(entity)
+        try await swiftDataClient.saveCalendar(entity)
         
         let payload = try JSONEncoder().encode(CalendarDTO.fromDomain(calendar))
-        try swiftDataClient.addToOutbox(
+        try await swiftDataClient.addToOutbox(
             entityType: "calendar",
             entityLocalID: entity.localID,
             operation: "create",
@@ -185,7 +185,7 @@ public actor CalendarRepository {
     
     public func updateCalendar(_ calendar: CalendarModel) async throws -> CalendarModel {
         guard let remoteID = calendar.id,
-              let entity = try swiftDataClient.getCalendar(remoteID: remoteID) else {
+              let entity = try await swiftDataClient.getCalendar(remoteID: remoteID) else {
             throw RepositoryError.notFound
         }
         
@@ -195,10 +195,10 @@ public actor CalendarRepository {
         entity.isDefaultForNewEvents = calendar.isDefaultForNewEvents
         entity.updatedAt = Date()
         entity.pendingSync = true
-        try swiftDataClient.updateCalendar(entity)
+        try await swiftDataClient.updateCalendar(entity)
         
         let payload = try JSONEncoder().encode(CalendarDTO.fromDomain(calendar))
-        try swiftDataClient.addToOutbox(
+        try await swiftDataClient.addToOutbox(
             entityType: "calendar",
             entityLocalID: entity.localID,
             operation: "update",
@@ -209,13 +209,13 @@ public actor CalendarRepository {
     }
     
     public func deleteCalendar(_ id: Int64) async throws {
-        guard let entity = try swiftDataClient.getCalendar(remoteID: id) else {
+        guard let entity = try await swiftDataClient.getCalendar(remoteID: id) else {
             throw RepositoryError.notFound
         }
-        try swiftDataClient.deleteCalendar(entity)
+        try await swiftDataClient.deleteCalendar(entity)
         
         let payload = try JSONEncoder().encode(["id": id])
-        try swiftDataClient.addToOutbox(
+        try await swiftDataClient.addToOutbox(
             entityType: "calendar",
             entityLocalID: entity.localID,
             operation: "delete",
@@ -230,7 +230,7 @@ public actor CalendarRepository {
             let domain = dto.toDomain()
             
             if let remoteID = domain.id,
-               let existingEntity = try swiftDataClient.getCalendar(remoteID: remoteID) {
+               let existingEntity = try await swiftDataClient.getCalendar(remoteID: remoteID) {
                 if domain.updatedAt > existingEntity.updatedAt {
                     existingEntity.name = domain.name
                     existingEntity.colorKey = domain.colorKey
@@ -238,12 +238,12 @@ public actor CalendarRepository {
                     existingEntity.isDefaultForNewEvents = domain.isDefaultForNewEvents
                     existingEntity.updatedAt = domain.updatedAt
                     existingEntity.pendingSync = false
-                    try swiftDataClient.updateCalendar(existingEntity, markPending: false)
+                    try await swiftDataClient.updateCalendar(existingEntity, markPending: false)
                 }
             } else {
                 let newEntity = CalendarEntity.fromDomain(domain)
                 newEntity.pendingSync = false
-                try swiftDataClient.saveCalendar(newEntity)
+                try await swiftDataClient.saveCalendar(newEntity)
             }
         }
     }
@@ -263,7 +263,7 @@ public actor ReminderRepository {
         for dto in remote {
             try await upsertLocal(dto.toDomain())
         }
-        return try swiftDataClient.fetchEventReminders(eventID: eventID).map { $0.toDomain() }
+        return try await swiftDataClient.fetchEventReminders(eventID: eventID).map { $0.toDomain() }
     }
 
     public func createReminder(_ reminder: EventReminder) async throws -> EventReminder {
@@ -283,21 +283,21 @@ public actor ReminderRepository {
 
     public func deleteReminder(_ id: Int64) async throws {
         try await supabaseClient.deleteEventReminder(id: id)
-        if let entity = try swiftDataClient.getEventReminder(remoteID: id) {
-            try swiftDataClient.deleteEventReminder(entity)
+        if let entity = try await swiftDataClient.getEventReminder(remoteID: id) {
+            try await swiftDataClient.deleteEventReminder(entity)
         }
     }
 
     private func upsertLocal(_ reminder: EventReminder) async throws {
-        if let remoteID = reminder.id, let entity = try swiftDataClient.getEventReminder(remoteID: remoteID) {
+        if let remoteID = reminder.id, let entity = try await swiftDataClient.getEventReminder(remoteID: remoteID) {
             entity.offsetMinutes = reminder.offsetMinutes
             entity.createdAt = reminder.createdAt
             entity.pendingSync = false
-            try swiftDataClient.updateEventReminder(entity, markPending: false)
+            try await swiftDataClient.updateEventReminder(entity, markPending: false)
         } else {
             let entity = EventReminderEntity.fromDomain(reminder)
             entity.pendingSync = false
-            try swiftDataClient.saveEventReminder(entity)
+            try await swiftDataClient.saveEventReminder(entity)
         }
     }
 }

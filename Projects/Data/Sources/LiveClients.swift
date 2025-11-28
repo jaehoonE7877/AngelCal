@@ -115,7 +115,7 @@ extension SearchClient {
     public static func live(repository: SearchRepository) -> Self {
         Self(
             searchEvents: { query, calendarIDs, from, to in
-                try repository.search(query: query, calendarIDs: calendarIDs, from: from, to: to)
+                try await repository.search(query: query, calendarIDs: calendarIDs, from: from, to: to)
             }
         )
     }
