@@ -40,6 +40,27 @@ public actor SupabaseClientWrapper {
     public func getCurrentUser() async throws -> User? {
         try await client.auth.user()
     }
+
+    // MARK: - Profiles
+    public func fetchProfile(userID: UUID) async throws -> ProfileDTO? {
+        let response: PostgrestResponse<[ProfileDTO]> = try await client
+            .from("profiles")
+            .select()
+            .eq("id", value: userID.uuidString)
+            .limit(1)
+            .execute()
+        return response.value.first
+    }
+
+    public func upsertProfile(_ profile: ProfileDTO) async throws -> ProfileDTO {
+        try await client
+            .from("profiles")
+            .upsert(profile)
+            .select()
+            .single()
+            .execute()
+            .value
+    }
     
     // MARK: - Events
     public func fetchEvents(userID: UUID, from: Date, to: Date) async throws -> [EventDTO] {
@@ -168,6 +189,114 @@ public actor SupabaseClientWrapper {
             .single()
             .execute()
             .value
+    }
+
+    // MARK: - Event Templates
+    public func fetchEventTemplates(userID: UUID) async throws -> [EventTemplateDTO] {
+        try await client
+            .from("event_templates")
+            .select()
+            .eq("user_id", value: userID.uuidString)
+            .execute()
+            .value
+    }
+
+    public func createEventTemplate(_ template: EventTemplateDTO) async throws -> EventTemplateDTO {
+        try await client
+            .from("event_templates")
+            .insert(template)
+            .select()
+            .single()
+            .execute()
+            .value
+    }
+
+    public func updateEventTemplate(_ template: EventTemplateDTO) async throws -> EventTemplateDTO {
+        guard let id = template.id else { throw SupabaseError.missingID }
+        return try await client
+            .from("event_templates")
+            .update(template)
+            .eq("id", value: Int(id))
+            .select()
+            .single()
+            .execute()
+            .value
+    }
+
+    public func deleteEventTemplate(id: Int64) async throws {
+        try await client
+            .from("event_templates")
+            .delete()
+            .eq("id", value: Int(id))
+            .execute()
+    }
+
+    // MARK: - Event Reminders
+    public func fetchEventReminders(eventID: Int64) async throws -> [EventReminderDTO] {
+        try await client
+            .from("event_reminders")
+            .select()
+            .eq("event_id", value: Int(eventID))
+            .execute()
+            .value
+    }
+
+    public func createEventReminder(_ reminder: EventReminderDTO) async throws -> EventReminderDTO {
+        try await client
+            .from("event_reminders")
+            .insert(reminder)
+            .select()
+            .single()
+            .execute()
+            .value
+    }
+
+    public func updateEventReminder(_ reminder: EventReminderDTO) async throws -> EventReminderDTO {
+        guard let id = reminder.id else { throw SupabaseError.missingID }
+        return try await client
+            .from("event_reminders")
+            .update(reminder)
+            .eq("id", value: Int(id))
+            .select()
+            .single()
+            .execute()
+            .value
+    }
+
+    public func deleteEventReminder(id: Int64) async throws {
+        try await client
+            .from("event_reminders")
+            .delete()
+            .eq("id", value: Int(id))
+            .execute()
+    }
+
+    // MARK: - Widget Configs
+    public func fetchWidgetConfigs(userID: UUID) async throws -> [WidgetConfigDTO] {
+        try await client
+            .from("widget_configs")
+            .select()
+            .eq("user_id", value: userID.uuidString)
+            .execute()
+            .value
+    }
+
+    public func upsertWidgetConfig(_ config: WidgetConfigDTO) async throws -> WidgetConfigDTO {
+        try await client
+            .from("widget_configs")
+            .upsert(config)
+            .select()
+            .single()
+            .execute()
+            .value
+    }
+
+    public func deleteWidgetConfig(id: Int64) async throws {
+        try await client
+            .from("widget_configs")
+            .delete()
+            .eq("id", value: Int(id))
+            .execute()
     }
 }
 
@@ -304,6 +433,32 @@ public struct NotificationSettingsDTO: Codable {
     public let dailySummaryScope: String
     public let badgeType: String
     public let soundKey: String?
+    public let createdAt: Date?
+    public let updatedAt: Date?
+
+    public init(
+        userID: UUID,
+        defaultAlertOffsetMinutes: Int,
+        allDayDefaultAlertOffsetMinutes: Int,
+        dailySummaryEnabled: Bool,
+        dailySummaryTimeLocal: String?,
+        dailySummaryScope: String,
+        badgeType: String,
+        soundKey: String?,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
+    ) {
+        self.userID = userID
+        self.defaultAlertOffsetMinutes = defaultAlertOffsetMinutes
+        self.allDayDefaultAlertOffsetMinutes = allDayDefaultAlertOffsetMinutes
+        self.dailySummaryEnabled = dailySummaryEnabled
+        self.dailySummaryTimeLocal = dailySummaryTimeLocal
+        self.dailySummaryScope = dailySummaryScope
+        self.badgeType = badgeType
+        self.soundKey = soundKey
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
     
     enum CodingKeys: String, CodingKey {
         case userID = "user_id"
@@ -314,6 +469,8 @@ public struct NotificationSettingsDTO: Codable {
         case dailySummaryScope = "daily_summary_scope"
         case badgeType = "badge_type"
         case soundKey = "sound_key"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
     }
 }
 
@@ -330,6 +487,40 @@ public struct AppearanceSettingsDTO: Codable {
     public let is24h: Bool
     public let enableLunar: Bool
     public let languageOverride: String?
+    public let createdAt: Date?
+    public let updatedAt: Date?
+
+    public init(
+        userID: UUID,
+        startOfWeek: String,
+        highlightHolidays: Bool,
+        colorThemeKey: String,
+        fontKey: String,
+        textScale: Double,
+        showEventColors: Bool,
+        showWeekNumber: Bool,
+        showHolidayName: Bool,
+        is24h: Bool,
+        enableLunar: Bool,
+        languageOverride: String?,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
+    ) {
+        self.userID = userID
+        self.startOfWeek = startOfWeek
+        self.highlightHolidays = highlightHolidays
+        self.colorThemeKey = colorThemeKey
+        self.fontKey = fontKey
+        self.textScale = textScale
+        self.showEventColors = showEventColors
+        self.showWeekNumber = showWeekNumber
+        self.showHolidayName = showHolidayName
+        self.is24h = is24h
+        self.enableLunar = enableLunar
+        self.languageOverride = languageOverride
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
     
     enum CodingKeys: String, CodingKey {
         case userID = "user_id"
@@ -344,6 +535,177 @@ public struct AppearanceSettingsDTO: Codable {
         case is24h = "is_24h"
         case enableLunar = "enable_lunar"
         case languageOverride = "language_override"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+}
+
+public struct EventReminderDTO: Codable {
+    public let id: Int64?
+    public let eventID: Int64
+    public let offsetMinutes: Int
+    public let createdAt: Date?
+
+    public init(
+        id: Int64? = nil,
+        eventID: Int64,
+        offsetMinutes: Int,
+        createdAt: Date? = nil
+    ) {
+        self.id = id
+        self.eventID = eventID
+        self.offsetMinutes = offsetMinutes
+        self.createdAt = createdAt
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case eventID = "event_id"
+        case offsetMinutes = "offset_minutes"
+        case createdAt = "created_at"
+    }
+}
+
+public struct EventTemplateDTO: Codable {
+    public let id: Int64?
+    public let userID: UUID
+    public let title: String
+    public let defaultDurationMinutes: Int
+    public let defaultAlertOffsets: [Int]
+    public let defaultLocation: String?
+    public let defaultColorKey: String?
+    public let defaultMemo: String?
+    public let sortOrder: Int
+    public let createdAt: Date?
+    public let updatedAt: Date?
+
+    public init(
+        id: Int64? = nil,
+        userID: UUID,
+        title: String,
+        defaultDurationMinutes: Int,
+        defaultAlertOffsets: [Int],
+        defaultLocation: String?,
+        defaultColorKey: String?,
+        defaultMemo: String?,
+        sortOrder: Int,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
+    ) {
+        self.id = id
+        self.userID = userID
+        self.title = title
+        self.defaultDurationMinutes = defaultDurationMinutes
+        self.defaultAlertOffsets = defaultAlertOffsets
+        self.defaultLocation = defaultLocation
+        self.defaultColorKey = defaultColorKey
+        self.defaultMemo = defaultMemo
+        self.sortOrder = sortOrder
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, title, sortOrder
+        case userID = "user_id"
+        case defaultDurationMinutes = "default_duration_minutes"
+        case defaultAlertOffsets = "default_alert_offsets"
+        case defaultLocation = "default_location"
+        case defaultColorKey = "default_color_key"
+        case defaultMemo = "default_memo"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+}
+
+public struct WidgetConfigDTO: Codable {
+    public let id: Int64?
+    public let userID: UUID
+    public let widgetIdentifier: String
+    public let widgetType: String
+    public let linkedCalendarIDs: [Int64]?
+    public let maxEventCount: Int
+    public let showAllDay: Bool
+    public let sortOrder: Int
+    public let createdAt: Date?
+    public let updatedAt: Date?
+
+    public init(
+        id: Int64? = nil,
+        userID: UUID,
+        widgetIdentifier: String,
+        widgetType: String,
+        linkedCalendarIDs: [Int64]?,
+        maxEventCount: Int,
+        showAllDay: Bool,
+        sortOrder: Int,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil
+    ) {
+        self.id = id
+        self.userID = userID
+        self.widgetIdentifier = widgetIdentifier
+        self.widgetType = widgetType
+        self.linkedCalendarIDs = linkedCalendarIDs
+        self.maxEventCount = maxEventCount
+        self.showAllDay = showAllDay
+        self.sortOrder = sortOrder
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userID = "user_id"
+        case widgetIdentifier = "widget_identifier"
+        case widgetType = "widget_type"
+        case linkedCalendarIDs = "linked_calendar_ids"
+        case maxEventCount = "max_event_count"
+        case showAllDay = "show_all_day"
+        case sortOrder = "sort_order"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+}
+
+public struct ProfileDTO: Codable {
+    public let id: UUID
+    public let email: String?
+    public let displayName: String?
+    public let avatarURL: String?
+    public let locale: String?
+    public let createdAt: Date?
+    public let updatedAt: Date?
+    public let deletedAt: Date?
+
+    public init(
+        id: UUID,
+        email: String?,
+        displayName: String?,
+        avatarURL: String?,
+        locale: String?,
+        createdAt: Date? = nil,
+        updatedAt: Date? = nil,
+        deletedAt: Date? = nil
+    ) {
+        self.id = id
+        self.email = email
+        self.displayName = displayName
+        self.avatarURL = avatarURL
+        self.locale = locale
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+        self.deletedAt = deletedAt
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id, email
+        case displayName = "display_name"
+        case avatarURL = "avatar_url"
+        case locale
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+        case deletedAt = "deleted_at"
     }
 }
 
