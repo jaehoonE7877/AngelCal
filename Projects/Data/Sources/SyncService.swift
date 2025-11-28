@@ -8,6 +8,9 @@ public actor SyncService {
     private let supabaseClient: SupabaseClientWrapper
     private let eventRepository: EventRepository
     private let calendarRepository: CalendarRepository
+    private let templateRepository: TemplateRepository?
+    private let settingsRepository: SettingsRepository?
+    private let reminderRepository: ReminderRepository?
     
     private var isSyncing = false
     private let maxRetries = 3
@@ -16,12 +19,18 @@ public actor SyncService {
         swiftDataClient: SwiftDataClient,
         supabaseClient: SupabaseClientWrapper,
         eventRepository: EventRepository,
-        calendarRepository: CalendarRepository
+        calendarRepository: CalendarRepository,
+        templateRepository: TemplateRepository? = nil,
+        settingsRepository: SettingsRepository? = nil,
+        reminderRepository: ReminderRepository? = nil
     ) {
         self.swiftDataClient = swiftDataClient
         self.supabaseClient = supabaseClient
         self.eventRepository = eventRepository
         self.calendarRepository = calendarRepository
+        self.templateRepository = templateRepository
+        self.settingsRepository = settingsRepository
+        self.reminderRepository = reminderRepository
     }
     
     // MARK: - Full Sync
@@ -48,11 +57,33 @@ public actor SyncService {
     public func syncCalendarsFromServer(userID: UUID) async throws {
         try await calendarRepository.syncCalendarsFromServer(userID: userID)
     }
+
+    public func syncTemplatesFromServer(userID: UUID) async throws {
+        _ = try await templateRepository?.fetchTemplates()
+    }
+
+    public func syncSettingsFromServer(userID: UUID) async throws {
+        if let settingsRepository {
+            _ = try await settingsRepository.fetchNotificationSettings(userID: userID)
+            _ = try await settingsRepository.fetchAppearanceSettings(userID: userID)
+            _ = try await settingsRepository.fetchWidgetConfigs()
+        }
+    }
     
     // MARK: - Pull from Server
     public func pullFromServer(userID: UUID) async throws {
         // Sync calendars first
         try await calendarRepository.syncCalendarsFromServer(userID: userID)
+
+        // Sync templates
+        _ = try await templateRepository?.fetchTemplates()
+
+        // Sync settings and widgets
+        if let settingsRepository {
+            _ = try await settingsRepository.fetchNotificationSettings(userID: userID)
+            _ = try await settingsRepository.fetchAppearanceSettings(userID: userID)
+            _ = try await settingsRepository.fetchWidgetConfigs()
+        }
         
         // Sync events for the current month
         let now = Date()
@@ -69,15 +100,15 @@ public actor SyncService {
     
     // MARK: - Push Outbox
     public func processPendingOutbox() async throws {
-        let outboxItems = try await swiftDataClient.getPendingOutbox()
+        let outboxItems = try swiftDataClient.getPendingOutbox()
         
         for outbox in outboxItems {
             do {
                 try await processOutboxItem(outbox)
-                try await swiftDataClient.deleteOutbox(outbox)
+                try swiftDataClient.deleteOutbox(outbox)
             } catch {
                 if outbox.retryCount < maxRetries {
-                    try await swiftDataClient.incrementOutboxRetry(outbox, error: error.localizedDescription)
+                    try swiftDataClient.incrementOutboxRetry(outbox, error: error.localizedDescription)
                 } else {
                     // Max retries reached, log or handle
                     print("⚠️ Outbox item \(outbox.id) exceeded max retries")
@@ -103,18 +134,18 @@ public actor SyncService {
             let dto = try JSONDecoder().decode(EventDTO.self, from: outbox.payload)
             let created = try await supabaseClient.createEvent(dto)
             // Update local entity with remote ID
-            if let entity = try await findEventEntity(localID: outbox.entityLocalID) {
+            if let entity = try findEventEntity(localID: outbox.entityLocalID) {
                 entity.remoteID = created.id
                 entity.pendingSync = false
-                try await swiftDataClient.updateEvent(entity, markPending: false)
+                try swiftDataClient.updateEvent(entity, markPending: false)
             }
             
         case "update":
             let dto = try JSONDecoder().decode(EventDTO.self, from: outbox.payload)
             _ = try await supabaseClient.updateEvent(dto)
-            if let entity = try await findEventEntity(localID: outbox.entityLocalID) {
+            if let entity = try findEventEntity(localID: outbox.entityLocalID) {
                 entity.pendingSync = false
-                try await swiftDataClient.updateEvent(entity, markPending: false)
+                try swiftDataClient.updateEvent(entity, markPending: false)
             }
             
         case "delete":
@@ -122,9 +153,9 @@ public actor SyncService {
             if let id = deletePayload["id"] {
                 try await supabaseClient.deleteEvent(id: id)
             }
-            if let entity = try await findEventEntity(localID: outbox.entityLocalID) {
+            if let entity = try findEventEntity(localID: outbox.entityLocalID) {
                 entity.pendingSync = false
-                try await swiftDataClient.updateEvent(entity, markPending: false)
+                try swiftDataClient.updateEvent(entity, markPending: false)
             }
             
         default:
@@ -137,18 +168,18 @@ public actor SyncService {
         case "create":
             let dto = try JSONDecoder().decode(CalendarDTO.self, from: outbox.payload)
             let created = try await supabaseClient.createCalendar(dto)
-            if let entity = try await findCalendarEntity(localID: outbox.entityLocalID) {
+            if let entity = try findCalendarEntity(localID: outbox.entityLocalID) {
                 entity.remoteID = created.id
                 entity.pendingSync = false
-                try await swiftDataClient.updateCalendar(entity, markPending: false)
+                try swiftDataClient.updateCalendar(entity, markPending: false)
             }
             
         case "update":
             let dto = try JSONDecoder().decode(CalendarDTO.self, from: outbox.payload)
             _ = try await supabaseClient.updateCalendar(dto)
-            if let entity = try await findCalendarEntity(localID: outbox.entityLocalID) {
+            if let entity = try findCalendarEntity(localID: outbox.entityLocalID) {
                 entity.pendingSync = false
-                try await swiftDataClient.updateCalendar(entity, markPending: false)
+                try swiftDataClient.updateCalendar(entity, markPending: false)
             }
             
         case "delete":
@@ -156,9 +187,9 @@ public actor SyncService {
             if let id = deletePayload["id"] {
                 try await supabaseClient.deleteCalendar(id: id)
             }
-            if let entity = try await findCalendarEntity(localID: outbox.entityLocalID) {
+            if let entity = try findCalendarEntity(localID: outbox.entityLocalID) {
                 entity.pendingSync = false
-                try await swiftDataClient.updateCalendar(entity, markPending: false)
+                try swiftDataClient.updateCalendar(entity, markPending: false)
             }
             
         default:
@@ -166,12 +197,12 @@ public actor SyncService {
         }
     }
     
-    private func findEventEntity(localID: UUID) async throws -> EventEntity? {
-        try await swiftDataClient.getEvent(localID: localID)
+    private func findEventEntity(localID: UUID) throws -> EventEntity? {
+        try swiftDataClient.getEvent(localID: localID)
     }
     
-    private func findCalendarEntity(localID: UUID) async throws -> CalendarEntity? {
-        try await swiftDataClient.getCalendar(localID: localID)
+    private func findCalendarEntity(localID: UUID) throws -> CalendarEntity? {
+        try swiftDataClient.getCalendar(localID: localID)
     }
 
     // MARK: - Triggers

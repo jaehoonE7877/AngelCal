@@ -6,17 +6,24 @@ public struct SearchRepository {
     let swiftDataClient: SwiftDataClient
     public init(swiftDataClient: SwiftDataClient) { self.swiftDataClient = swiftDataClient }
     
-    public func search(query: String, calendarIDs: [Int64]?, from: Date?, to: Date?) async throws -> [Event] {
-        let events = try await swiftDataClient.fetchEvents(from: from ?? .distantPast, to: to ?? .distantFuture)
+    public func search(query: String, calendarIDs: [Int64]?, from: Date?, to: Date?) throws -> [Event] {
+        let events = try swiftDataClient.fetchEvents(from: from ?? .distantPast, to: to ?? .distantFuture)
         let lowered = query.lowercased()
-        return events.map { $0.toDomain() }.filter { ev in
-            (calendarIDs == nil || calendarIDs!.contains(ev.calendarID)) &&
-            (
-                ev.title.lowercased().contains(lowered) ||
-                (ev.memo ?? "").lowercased().contains(lowered) ||
-                (ev.location ?? "").lowercased().contains(lowered) ||
-                (ev.url ?? "").lowercased().contains(lowered)
-            )
-        }
+        let filtered = events
+            .filter { $0.deletedAt == nil }
+            .map { $0.toDomain() }
+            .filter { ev in
+                let matchesCalendar = calendarIDs == nil || calendarIDs!.contains(ev.calendarID)
+                guard matchesCalendar else { return false }
+                if lowered.isEmpty { return true }
+                let text = [
+                    ev.title,
+                    ev.memo ?? "",
+                    ev.location ?? "",
+                    ev.url ?? ""
+                ].joined(separator: " ").lowercased()
+                return text.contains(lowered)
+            }
+        return filtered.sorted { $0.startAt < $1.startAt }
     }
 }

@@ -19,9 +19,11 @@ extension EventClient {
             deleteEvent: { id in
                 try await repository.deleteEvent(id)
             },
+            copyEvent: { id, newStart in
+                try await repository.copyEvent(id: id, to: newStart)
+            },
             getEvent: { id in
-                try await repository.fetchEvents(from: Date.distantPast, to: Date.distantFuture)
-                    .first(where: { $0.id == id })
+                try await repository.getEvent(id: id)
             }
         )
     }
@@ -65,8 +67,7 @@ extension SyncClient {
                 try await syncService.processPendingOutbox()
             },
             syncSettings: {
-                // Settings pull/push hooks can be added; for now reuse full sync.
-                try await syncService.syncAll(userID: userID)
+                try await syncService.syncSettingsFromServer(userID: userID)
             },
             processPendingOutbox: {
                 try await syncService.processPendingOutbox()
@@ -80,11 +81,16 @@ extension AuthClient {
         Self(
             signInWithApple: { idToken in
                 let user = try await supabaseClient.signInWithApple(idToken: idToken)
-                return UserProfile(
+                let displayName = user.userMetadata["full_name"]?.value as? String
+                let profile = ProfileDTO(
                     id: user.id,
                     email: user.email,
-                    displayName: user.userMetadata["full_name"]?.value as? String
+                    displayName: displayName,
+                    avatarURL: nil,
+                    locale: nil
                 )
+                let savedProfile = try await supabaseClient.upsertProfile(profile)
+                return savedProfile.toDomain()
             },
             signOut: {
                 try await supabaseClient.signOut()
@@ -93,13 +99,73 @@ extension AuthClient {
                 guard let user = try await supabaseClient.getCurrentUser() else {
                     return nil
                 }
-                return UserProfile(
-                    id: user.id,
-                    email: user.email
-                )
+                if let remoteProfile = try await supabaseClient.fetchProfile(userID: user.id) {
+                    return remoteProfile.toDomain()
+                }
+                return UserProfile(id: user.id, email: user.email)
             },
             isAuthenticated: {
                 (try? await supabaseClient.getCurrentSession()) != nil
+            }
+        )
+    }
+}
+
+extension SearchClient {
+    public static func live(repository: SearchRepository) -> Self {
+        Self(
+            searchEvents: { query, calendarIDs, from, to in
+                try repository.search(query: query, calendarIDs: calendarIDs, from: from, to: to)
+            }
+        )
+    }
+}
+
+extension SettingsClient {
+    public static func live(repository: SettingsRepository) -> Self {
+        Self(
+            getNotificationSettings: {
+                try await repository.fetchNotificationSettings(userID: repository.userID)
+            },
+            updateNotificationSettings: { settings in
+                try await repository.upsertNotificationSettings(settings)
+            },
+            getAppearanceSettings: {
+                try await repository.fetchAppearanceSettings(userID: repository.userID)
+            },
+            updateAppearanceSettings: { settings in
+                try await repository.upsertAppearanceSettings(settings)
+            },
+            getWidgetConfigs: {
+                try await repository.fetchWidgetConfigs()
+            },
+            upsertWidgetConfig: { config in
+                try await repository.upsertWidgetConfig(config)
+            },
+            deleteWidgetConfig: { id in
+                try await repository.deleteWidgetConfig(id: id)
+            }
+        )
+    }
+}
+
+extension TemplateClient {
+    public static func live(repository: TemplateRepository) -> Self {
+        Self(
+            fetchTemplates: {
+                try await repository.fetchTemplates()
+            },
+            createTemplate: { template in
+                try await repository.createTemplate(template)
+            },
+            updateTemplate: { template in
+                try await repository.updateTemplate(template)
+            },
+            deleteTemplate: { id in
+                try await repository.deleteTemplate(id)
+            },
+            reorderTemplates: { ids in
+                try await repository.reorderTemplates(ids)
             }
         )
     }
