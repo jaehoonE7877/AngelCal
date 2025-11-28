@@ -1,20 +1,18 @@
 import ProjectDescription
 
 let project = Project(
-    name: "Data",
+    name: "FeatureSettingsWidgetGuide",
     targets: [
         .target(
-            name: "Data",
+            name: "FeatureSettingsWidgetGuide",
             destinations: .iOS,
             product: .framework,
-            bundleId: "com.jaehoon.angelcal.data",
+            bundleId: "com.jaehoon.angelcal.featuresettingswidgetguide",
             deploymentTargets: .iOS("18.0"),
             sources: ["Sources/**"],
             dependencies: [
-                .external(name: "ComposableArchitecture"),
                 .project(target: "Core", path: "../Core"),
-                .project(target: "SupabaseClient", path: "../SupabaseClient"),
-                .project(target: "SwiftDataClient", path: "../SwiftDataClient"),
+                .external(name: "ComposableArchitecture")
             ]
         )
     ]

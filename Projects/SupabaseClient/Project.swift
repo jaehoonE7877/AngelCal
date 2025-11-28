@@ -7,7 +7,7 @@ let project = Project(
             name: "SupabaseClient",
             destinations: .iOS,
             product: .framework,
-            bundleId: "com.angelcal.supabaseclient",
+            bundleId: "com.jaehoon.angelcal.supabaseclient",
             deploymentTargets: .iOS("18.0"),
             sources: ["Sources/**"],
             dependencies: [

@@ -7,7 +7,7 @@ let project = Project(
             name: "DSKit",
             destinations: .iOS,
             product: .framework,
-            bundleId: "com.angelcal.dskit",
+            bundleId: "com.jaehoon.angelcal.dskit",
             deploymentTargets: .iOS("18.0"),
             infoPlist: .extendingDefault(
                 with: [

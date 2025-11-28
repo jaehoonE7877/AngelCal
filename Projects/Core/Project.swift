@@ -7,7 +7,7 @@ let project = Project(
             name: "Core",
             destinations: .iOS,
             product: .framework,
-            bundleId: "com.angelcal.core",
+            bundleId: "com.jaehoon.angelcal.core",
             deploymentTargets: .iOS("18.0"),
             sources: ["Sources/**"],
             dependencies: [

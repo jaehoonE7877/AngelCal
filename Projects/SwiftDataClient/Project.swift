@@ -7,7 +7,7 @@ let project = Project(
             name: "SwiftDataClient",
             destinations: .iOS,
             product: .framework,
-            bundleId: "com.angelcal.swiftdataclient",
+            bundleId: "com.jaehoon.angelcal.swiftdataclient",
             deploymentTargets: .iOS("18.0"),
             sources: ["Sources/**"],
             dependencies: [

@@ -12,6 +12,9 @@ let workspace = Workspace(
         "Projects/SwiftDataClient",
         "Projects/Features/FeatureMain",
         "Projects/Features/FeatureCalendar",
+        "Projects/Features/FeatureEventEdit",
+        "Projects/Features/FeatureEventDetail",
+        "Projects/Features/FeatureTemplate",
         "Projects/Features/FeatureSearch",
         "Projects/Features/FeatureSettings",
     ]
