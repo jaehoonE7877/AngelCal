@@ -16,6 +16,7 @@ Tuist/Dependencies/SwiftPackageManager
 Packages/
 Package.pins
 Package.resolved
+*.swiftpm/
 *.xcodeproj/project.xcworkspace/xcshareddata/swiftpm
 
 # CocoaPods
