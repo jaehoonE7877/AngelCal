@@ -1,18 +1,22 @@
 import Foundation
 import SwiftData
 
-public actor SwiftDataClient {
+/// Thin SwiftData helper. Not thread-safe; call from a single actor (e.g., repositories) to serialize access.
+public final class SwiftDataClient {
     private let modelContainer: ModelContainer
     private let modelContext: ModelContext
     
     public init() throws {
         let schema = Schema([
             EventEntity.self,
+            EventReminderEntity.self,
             CalendarEntity.self,
             OutboxEntity.self,
             UserProfileEntity.self,
             NotificationSettingsEntity.self,
             AppearanceSettingsEntity.self,
+            TemplateEntity.self,
+            WidgetConfigEntity.self,
         ])
         
         let modelConfiguration = ModelConfiguration(
@@ -49,8 +53,12 @@ public actor SwiftDataClient {
     }
     
     public func updateEvent(_ event: EventEntity, markPending: Bool = true) throws {
-        event.updatedAt = Date()
-        if markPending { event.pendingSync = true }
+        if markPending {
+            event.updatedAt = Date()
+            event.pendingSync = true
+        } else {
+            event.pendingSync = false
+        }
         try modelContext.save()
     }
     
@@ -73,6 +81,46 @@ public actor SwiftDataClient {
             event.localID == localID
         }
         let descriptor = FetchDescriptor<EventEntity>(predicate: predicate)
+        return try modelContext.fetch(descriptor).first
+    }
+
+    // MARK: - Event Reminder Operations
+    public func fetchEventReminders(eventID: Int64) throws -> [EventReminderEntity] {
+        let predicate = #Predicate<EventReminderEntity> { reminder in
+            reminder.eventID == eventID
+        }
+        let descriptor = FetchDescriptor<EventReminderEntity>(predicate: predicate, sortBy: [SortDescriptor(\.createdAt)])
+        return try modelContext.fetch(descriptor)
+    }
+
+    public func saveEventReminder(_ reminder: EventReminderEntity) throws {
+        modelContext.insert(reminder)
+        try modelContext.save()
+    }
+
+    public func updateEventReminder(_ reminder: EventReminderEntity, markPending: Bool = true) throws {
+        if markPending { reminder.pendingSync = true }
+        try modelContext.save()
+    }
+
+    public func deleteEventReminder(_ reminder: EventReminderEntity) throws {
+        modelContext.delete(reminder)
+        try modelContext.save()
+    }
+
+    public func getEventReminder(remoteID: Int64) throws -> EventReminderEntity? {
+        let predicate = #Predicate<EventReminderEntity> { reminder in
+            reminder.remoteID == remoteID
+        }
+        let descriptor = FetchDescriptor<EventReminderEntity>(predicate: predicate)
+        return try modelContext.fetch(descriptor).first
+    }
+
+    public func getEventReminder(localID: UUID) throws -> EventReminderEntity? {
+        let predicate = #Predicate<EventReminderEntity> { reminder in
+            reminder.localID == localID
+        }
+        let descriptor = FetchDescriptor<EventReminderEntity>(predicate: predicate)
         return try modelContext.fetch(descriptor).first
     }
     
@@ -107,8 +155,12 @@ public actor SwiftDataClient {
     }
     
     public func updateCalendar(_ calendar: CalendarEntity, markPending: Bool = true) throws {
-        calendar.updatedAt = Date()
-        if markPending { calendar.pendingSync = true }
+        if markPending {
+            calendar.updatedAt = Date()
+            calendar.pendingSync = true
+        } else {
+            calendar.pendingSync = false
+        }
         try modelContext.save()
     }
     
@@ -177,5 +229,82 @@ public actor SwiftDataClient {
         }
         modelContext.insert(settings)
         try modelContext.save()
+    }
+    
+    // MARK: - Template Operations
+    public func fetchTemplates(userID: UUID) throws -> [TemplateEntity] {
+        let predicate = #Predicate<TemplateEntity> { $0.userID == userID }
+        let descriptor = FetchDescriptor<TemplateEntity>(predicate: predicate, sortBy: [SortDescriptor(\.sortOrder)])
+        return try modelContext.fetch(descriptor)
+    }
+    
+    public func saveTemplate(_ template: TemplateEntity) throws {
+        modelContext.insert(template)
+        try modelContext.save()
+    }
+    
+    public func updateTemplate(_ template: TemplateEntity, markPending: Bool = true) throws {
+        if markPending {
+            template.updatedAt = Date()
+            template.pendingSync = true
+        } else {
+            template.pendingSync = false
+        }
+        try modelContext.save()
+    }
+    
+    public func deleteTemplate(_ template: TemplateEntity) throws {
+        modelContext.delete(template)
+        try modelContext.save()
+    }
+    
+    public func getTemplate(remoteID: Int64) throws -> TemplateEntity? {
+        let predicate = #Predicate<TemplateEntity> { $0.remoteID == remoteID }
+        let descriptor = FetchDescriptor<TemplateEntity>(predicate: predicate)
+        return try modelContext.fetch(descriptor).first
+    }
+    
+    public func getTemplate(localID: UUID) throws -> TemplateEntity? {
+        let predicate = #Predicate<TemplateEntity> { $0.localID == localID }
+        let descriptor = FetchDescriptor<TemplateEntity>(predicate: predicate)
+        return try modelContext.fetch(descriptor).first
+    }
+    
+    // MARK: - Widget Config Operations
+    public func fetchWidgetConfigs(userID: UUID) throws -> [WidgetConfigEntity] {
+        let predicate = #Predicate<WidgetConfigEntity> { config in
+            config.userID == userID
+        }
+        let descriptor = FetchDescriptor<WidgetConfigEntity>(predicate: predicate, sortBy: [SortDescriptor(\.sortOrder)])
+        return try modelContext.fetch(descriptor)
+    }
+    
+    public func saveWidgetConfig(_ config: WidgetConfigEntity) throws {
+        modelContext.insert(config)
+        try modelContext.save()
+    }
+    
+    public func updateWidgetConfig(_ config: WidgetConfigEntity, markPending: Bool = true) throws {
+        if markPending {
+            config.updatedAt = Date()
+        }
+        try modelContext.save()
+    }
+    
+    public func deleteWidgetConfig(_ config: WidgetConfigEntity) throws {
+        modelContext.delete(config)
+        try modelContext.save()
+    }
+    
+    public func getWidgetConfig(remoteID: Int64) throws -> WidgetConfigEntity? {
+        let predicate = #Predicate<WidgetConfigEntity> { $0.remoteID == remoteID }
+        let descriptor = FetchDescriptor<WidgetConfigEntity>(predicate: predicate)
+        return try modelContext.fetch(descriptor).first
+    }
+    
+    public func getWidgetConfig(localID: UUID) throws -> WidgetConfigEntity? {
+        let predicate = #Predicate<WidgetConfigEntity> { $0.localID == localID }
+        let descriptor = FetchDescriptor<WidgetConfigEntity>(predicate: predicate)
+        return try modelContext.fetch(descriptor).first
     }
 }
