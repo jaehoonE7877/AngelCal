@@ -2,12 +2,12 @@ import Foundation
 import Core
 import SwiftDataClient
 
-public struct SearchRepository {
+public actor SearchRepository {
     let swiftDataClient: SwiftDataClient
     public init(swiftDataClient: SwiftDataClient) { self.swiftDataClient = swiftDataClient }
     
-    public func search(query: String, calendarIDs: [Int64]?, from: Date?, to: Date?) throws -> [Event] {
-        let events = try swiftDataClient.fetchEvents(from: from ?? .distantPast, to: to ?? .distantFuture)
+    public func search(query: String, calendarIDs: [Int64]?, from: Date?, to: Date?) async throws -> [Event] {
+        let events = try await swiftDataClient.fetchEvents(from: from ?? .distantPast, to: to ?? .distantFuture)
         let lowered = query.lowercased()
         let filtered = events
             .filter { $0.deletedAt == nil }

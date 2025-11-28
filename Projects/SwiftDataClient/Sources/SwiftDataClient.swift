@@ -1,8 +1,8 @@
 import Foundation
 import SwiftData
 
-/// Thin SwiftData helper. Not thread-safe; call from a single actor (e.g., repositories) to serialize access.
-public final class SwiftDataClient {
+/// SwiftData helper isolated to its own actor so `ModelContext` never crosses executors.
+public actor SwiftDataClient {
     private let modelContainer: ModelContainer
     private let modelContext: ModelContext
     
@@ -32,10 +32,6 @@ public final class SwiftDataClient {
         
         self.modelContext = ModelContext(modelContainer)
         self.modelContext.autosaveEnabled = true
-    }
-    
-    public func getContext() -> ModelContext {
-        modelContext
     }
     
     // MARK: - Event Operations

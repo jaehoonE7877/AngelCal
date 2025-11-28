@@ -20,7 +20,7 @@ public actor TemplateRepository {
         for dto in remote {
             try await upsertLocal(template: dto.toDomain())
         }
-        return try swiftDataClient.fetchTemplates(userID: userID).map { $0.toDomain() }
+        return try await swiftDataClient.fetchTemplates(userID: userID).map { $0.toDomain() }
     }
     
     public func createTemplate(_ template: EventTemplate) async throws -> EventTemplate {
@@ -40,8 +40,8 @@ public actor TemplateRepository {
     
     public func deleteTemplate(_ id: Int64) async throws {
         try await supabaseClient.deleteEventTemplate(id: id)
-        if let entity = try swiftDataClient.getTemplate(remoteID: id) {
-            try swiftDataClient.deleteTemplate(entity)
+        if let entity = try await swiftDataClient.getTemplate(remoteID: id) {
+            try await swiftDataClient.deleteTemplate(entity)
         }
     }
     
@@ -50,10 +50,10 @@ public actor TemplateRepository {
         let orderMap = Dictionary(uniqueKeysWithValues: ids.enumerated().map { ($1, $0) })
         for template in current {
             guard let remoteID = template.id, let newOrder = orderMap[remoteID],
-                  let entity = try swiftDataClient.getTemplate(remoteID: remoteID) else { continue }
+                  let entity = try await swiftDataClient.getTemplate(remoteID: remoteID) else { continue }
             entity.sortOrder = newOrder
             entity.updatedAt = Date()
-            try swiftDataClient.updateTemplate(entity, markPending: false)
+            try await swiftDataClient.updateTemplate(entity, markPending: false)
             // Push reorder to server best-effort
             var updatedDomain = template
             updatedDomain = EventTemplate(
@@ -74,7 +74,7 @@ public actor TemplateRepository {
     }
 
     private func upsertLocal(template: EventTemplate) async throws {
-        if let remoteID = template.id, let existing = try swiftDataClient.getTemplate(remoteID: remoteID) {
+        if let remoteID = template.id, let existing = try await swiftDataClient.getTemplate(remoteID: remoteID) {
             existing.title = template.title
             existing.defaultDurationMinutes = template.defaultDurationMinutes
             existing.defaultAlertOffsets = template.defaultAlertOffsets
@@ -84,11 +84,11 @@ public actor TemplateRepository {
             existing.sortOrder = template.sortOrder
             existing.createdAt = template.createdAt
             existing.updatedAt = template.updatedAt
-            try swiftDataClient.updateTemplate(existing, markPending: false)
+            try await swiftDataClient.updateTemplate(existing, markPending: false)
         } else {
             let entity = TemplateEntity.fromDomain(template)
             entity.pendingSync = false
-            try swiftDataClient.saveTemplate(entity)
+            try await swiftDataClient.saveTemplate(entity)
         }
     }
 }
