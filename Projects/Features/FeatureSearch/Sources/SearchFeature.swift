@@ -10,6 +10,8 @@ public struct SearchFeature {
         public var dateRange: ClosedRange<Date>? = nil
         public var calendarFilter: [Int64]? = nil
         public var results: [Event] = []
+        public var sort: Sort = .startAscending
+        public var selectedEvent: Event?
         public init() {}
     }
     
@@ -18,10 +20,19 @@ public struct SearchFeature {
         case setRange(ClosedRange<Date>?)
         case setCalendarFilter([Int64]?)
         case search
-        case results([Event])
+        case searchResponse(TaskResult<[Event]>)
+        case setSort(Sort)
+        case select(Event)
+        case dismissDetail
     }
     
-    @Dependency(\.searchRepository) var searchRepo
+    public enum Sort: Equatable {
+        case startAscending
+        case startDescending
+    }
+    
+    @Dependency(\.searchClient) var searchClient
+    @Dependency(\.syncClient) var syncClient
     
     public init() {}
     
@@ -39,18 +50,43 @@ public struct SearchFeature {
                 let range = state.dateRange
                 let filter = state.calendarFilter
                 return .run { send in
-                    let res = try await searchRepo.search(
-                        query: query,
-                        calendarIDs: filter,
-                        from: range?.lowerBound,
-                        to: range?.upperBound
+                    if range != nil {
+                        try? await syncClient.syncEvents()
+                    }
+                    let res = try await searchClient.searchEvents(
+                        query,
+                        filter,
+                        range?.lowerBound,
+                        range?.upperBound
                     )
-                    await send(.results(res))
+                    await send(.searchResponse(.success(res)))
                 }
-            case .results(let res):
-                state.results = res
+            case .searchResponse(.success(let res)):
+                state.results = applySort(res, sort: state.sort)
+                return .none
+            case .searchResponse(.failure):
+                state.results = []
+                return .none
+            case .setSort(let sort):
+                state.sort = sort
+                state.results = applySort(state.results, sort: sort)
+                return .none
+            case .select(let event):
+                state.selectedEvent = event
+                return .none
+            case .dismissDetail:
+                state.selectedEvent = nil
                 return .none
             }
+        }
+    }
+    
+    private func applySort(_ events: [Event], sort: Sort) -> [Event] {
+        switch sort {
+        case .startAscending:
+            return events.sorted { $0.startAt < $1.startAt }
+        case .startDescending:
+            return events.sorted { $0.startAt > $1.startAt }
         }
     }
 }

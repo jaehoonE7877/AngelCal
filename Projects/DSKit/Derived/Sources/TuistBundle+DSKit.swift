@@ -16,7 +16,7 @@ extension Foundation.Bundle {
 }
 // MARK: - Objective-C Bundle Accessor
 @objc
-public final class DSKitResources: NSObject {
+public class DSKitResources: NSObject {
 @objc public class var bundle: Bundle {
     return .module
 }

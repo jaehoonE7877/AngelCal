@@ -1,22 +1,19 @@
 import ProjectDescription
 
 let project = Project(
-    name: "FeatureMain",
+    name: "FeatureEventEdit",
     targets: [
         .target(
-            name: "FeatureMain",
+            name: "FeatureEventEdit",
             destinations: .iOS,
             product: .framework,
-            bundleId: "com.jaehoon.angelcal.featuremain",
+            bundleId: "com.jaehoon.angelcal.featureeventedit",
             deploymentTargets: .iOS("18.0"),
             sources: ["Sources/**"],
             dependencies: [
-                .project(target: "FeatureCalendar", path: "../FeatureCalendar"),
-                .project(target: "FeatureSearch", path: "../FeatureSearch"),
-                .project(target: "FeatureSettings", path: "../FeatureSettings"),
                 .project(target: "Core", path: "../../Core"),
                 .project(target: "DSKit", path: "../../DSKit"),
-                .external(name: "ComposableArchitecture"),
+                .external(name: "ComposableArchitecture")
             ]
         )
     ]

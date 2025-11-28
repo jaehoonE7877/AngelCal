@@ -10,12 +10,15 @@ public struct DayListFeature {
         public init() {}
     }
     
-    public enum Action { case none }
+    public enum Action {
+        case setEvents([Event])
+    }
     public init() {}
     public var body: some ReducerOf<Self> {
-        Reduce { _, action in
+        Reduce { state, action in
             switch action {
-            case .none:
+            case .setEvents(let events):
+                state.events = events
                 return .none
             }
         }

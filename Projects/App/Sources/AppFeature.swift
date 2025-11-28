@@ -2,11 +2,14 @@ import ComposableArchitecture
 import SwiftUI
 import Core
 import FeatureMain
+import FeatureEventDetail
 
 @Reducer
 struct AppFeature {
     @Dependency(\.authClient) var authClient
     @Dependency(\.syncClient) var syncClient
+    @Dependency(\.metricsClient) var metricsClient
+    @Dependency(\.errorReporter) var errorReporter
     
     @ObservableState
     struct State: Equatable {
@@ -23,8 +26,7 @@ struct AppFeature {
     }
     
     var body: some ReducerOf<Self> {
-        Scope(state: \.
-main, action: \.main) {
+        Scope(state: \.main, action: \.main) {
             MainFeature()
         }
         
@@ -32,25 +34,32 @@ main, action: \.main) {
             switch action {
             case .onAppear:
                 return .run { _ in
-                    _ = try await authClient.getCurrentUser()?.id
-                    try await syncClient.syncAll()
+                    metricsClient.logEvent("app_launch", [:])
+                    do {
+                        _ = try await authClient.getCurrentUser()?.id
+                        try await syncClient.syncAll()
+                        metricsClient.logEvent("sync_completed", [:])
+                    } catch {
+                        errorReporter.handle(error, "AppFeature.onAppear.sync")
+                        metricsClient.logEvent("sync_failed", ["error": error.localizedDescription])
+                    }
                 }
             case .main:
                 return .none
             case .showOnboarding(let completed):
                 state.onboardingCompleted = completed
+                metricsClient.logEvent("onboarding_completed", ["completed": "\(completed)"])
                 return .none
             case .path:
                 return .none
             }
         }
-        .forEach(\.
-path, action: \.path)
+        .forEach(\.path, action: \.path)
     }
     
     @Reducer
     enum Path {
-        case detail(DetailFeature)
+        case detail(EventDetailFeature)
     }
 }
 
@@ -60,14 +69,12 @@ struct AppView: View {
     var body: some View {
         Group {
             if store.onboardingCompleted {
-                NavigationStack(path: $store.scope(state: \.
-path, action: \.path)) {
-                    MainView(store: store.scope(state: \.
-main, action: \.main))
+                NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
+                    MainView(store: store.scope(state: \.main, action: \.main))
                 } destination: { store in
                     switch store.case {
                     case .detail(let store):
-                        DetailView(store: store)
+                        EventDetailView(store: store)
                     }
                 }
             } else {

@@ -1,6 +1,7 @@
 import ComposableArchitecture
 import Foundation
 import Core
+import FeatureEventEdit
 
 @Reducer
 public struct CalendarFeature {
@@ -15,56 +16,86 @@ public struct CalendarFeature {
     }
     
     public enum Action {
+        case onAppear
         case setDate(Date)
         case setViewMode(ViewMode)
         case pullToRefresh
         case dayList(DayListFeature.Action)
         case setEventEditPresented(Bool)
         case eventEdit(EventEditFeature.Action)
+        case eventsResponse(TaskResult<[Event]>)
     }
     
     @Dependency(\.syncClient) var syncClient
-    @Dependency(\.continuousClock) var clock
+    @Dependency(\.eventClient) var eventClient
     
     public init() {}
     
     public var body: some ReducerOf<Self> {
-        Scope(state: \.
- dayList, action: \.dayList) {
+        Scope(state: \.dayList, action: \.dayList) {
             DayListFeature()
         }
-        Scope(state: \.
- eventEditState, action: \.eventEdit) {
+        Scope(state: \.eventEditState, action: \.eventEdit) {
             EventEditFeature()
         }
         Reduce { state, action in
             switch action {
+            case .onAppear:
+                return loadEventsEffect(for: state.selectedDate, viewMode: state.viewMode)
             case .setDate(let date):
                 state.selectedDate = date
-                return .none
+                return loadEventsEffect(for: date, viewMode: state.viewMode)
             case .setViewMode(let mode):
                 state.viewMode = mode
-                return .none
+                return loadEventsEffect(for: state.selectedDate, viewMode: mode)
             case .pullToRefresh:
-                let now = state.selectedDate
-                return .run { _ in
-                    var cal = Calendar.current
-                    cal.timeZone = .current
-                    let start = cal.date(from: cal.dateComponents([.year,.month], from: now)) ?? now
-                    let end = cal.date(byAdding: .month, value: 1, to: start) ?? now
+                let refresh = Effect<Action>.run { _ in
                     try await syncClient.syncEvents()
                     try await syncClient.processPendingOutbox()
-                    _ = (start, end)
                 }
+                return .concatenate(
+                    refresh,
+                    loadEventsEffect(for: state.selectedDate, viewMode: state.viewMode)
+                )
             case .dayList:
                 return .none
             case .setEventEditPresented(let presented):
                 state.showingEventEdit = presented
-                if presented == false { state.eventEditState = .init() }
+                state.eventEditState = .init(startAt: state.selectedDate)
                 return .none
+            case .eventEdit(.delegate(.saved)):
+                state.showingEventEdit = false
+                return .merge(
+                    loadEventsEffect(for: state.selectedDate, viewMode: state.viewMode),
+                    .run { _ in try? await syncClient.processPendingOutbox() }
+                )
             case .eventEdit:
                 return .none
+            case .eventsResponse(.success(let events)):
+                let cal = Calendar.current
+                state.dayList.events = events
+                    .filter { cal.isDate($0.startAt, inSameDayAs: state.selectedDate) }
+                    .sorted { $0.startAt < $1.startAt }
+                return .none
+            case .eventsResponse(.failure):
+                state.dayList.events = []
+                return .none
             }
+        }
+    }
+    
+    private func loadEventsEffect(for date: Date, viewMode: ViewMode) -> Effect<Action> {
+        .run { send in
+            let calendar = Calendar.current
+            let start = calendar.startOfDay(for: date)
+            let end: Date
+            switch viewMode {
+            case .week:
+                end = calendar.date(byAdding: .day, value: 7, to: start) ?? start
+            case .month:
+                end = calendar.date(byAdding: .day, value: 30, to: start) ?? start
+            }
+            await send(.eventsResponse(TaskResult { try await eventClient.fetchEvents(start, end) }))
         }
     }
 }

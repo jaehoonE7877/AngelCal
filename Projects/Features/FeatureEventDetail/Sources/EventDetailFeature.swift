@@ -16,9 +16,20 @@ public struct EventDetailFeature {
         case delete
         case deleted(Result<Void, Error>)
         case onAppear
+        case delegate(Delegate)
+        case saveAsTemplate
+        case templateSaved(TaskResult<EventTemplate>)
+    }
+    
+    public enum Delegate {
+        case edit(Event)
+        case copied(Event)
+        case deleted(Int64?)
     }
     
     @Dependency(\.eventClient) var eventClient
+    @Dependency(\.templateClient) var templateClient
+    @Dependency(\.currentUserID) var currentUserID
     @Dependency(\.dismiss) var dismiss
     
     public init() {}
@@ -29,13 +40,30 @@ public struct EventDetailFeature {
             case .onAppear:
                 return .none
             case .edit:
-                return .none // navigation handled upstream
+                let event = state.event
+                return .run { send in await send(.delegate(.edit(event))) }
             case .copyToDate(let date):
-                var copy = state.event
-                copy.id = nil
-                copy.startAt = date
-                copy.endAt = Calendar.current.date(byAdding: .minute, value: Int(copy.endAt.timeIntervalSince(copy.startAt)/60), to: date) ?? date
-                return .run { _ in _ = try await eventClient.createEvent(copy) }
+                guard let id = state.event.id else { return .none }
+                return .run { send in
+                    let copied = try await eventClient.copyEvent(id, date)
+                    await send(.delegate(.copied(copied)))
+                }
+            case .saveAsTemplate:
+                let duration = state.event.endAt.timeIntervalSince(state.event.startAt)
+                let template = EventTemplate(
+                    id: nil,
+                    userID: currentUserID,
+                    title: state.event.title,
+                    defaultDurationMinutes: Int(duration/60),
+                    defaultAlertOffsets: [-10],
+                    defaultLocation: state.event.location,
+                    defaultColorKey: state.event.colorOverride,
+                    defaultMemo: state.event.memo,
+                    sortOrder: 0
+                )
+                return .run { send in
+                    await send(.templateSaved(TaskResult { try await templateClient.createTemplate(template) }))
+                }
             case .delete:
                 guard let id = state.event.id else { return .none }
                 return .run { send in
@@ -43,7 +71,15 @@ public struct EventDetailFeature {
                     catch { await send(.deleted(.failure(error))) }
                 }
             case .deleted:
-                return .run { _ in await dismiss() }
+                let id = state.event.id
+                return .concatenate(
+                    .run { send in await send(.delegate(.deleted(id))) },
+                    .run { _ in await dismiss() }
+                )
+            case .templateSaved:
+                return .none
+            case .delegate:
+                return .none
             }
         }
     }

@@ -10,6 +10,10 @@ private func _unimplementedThrowing<T>() throws -> T {
     fatalError("unimplemented")
 }
 
+private func _unimplementedAsync<T>() async throws -> T {
+    fatalError("unimplemented")
+}
+
 // MARK: - Event Client
 @DependencyClient
 public struct EventClient: Sendable {
@@ -17,6 +21,7 @@ public struct EventClient: Sendable {
     public var createEvent: @Sendable (Event) async throws -> Event
     public var updateEvent: @Sendable (Event) async throws -> Event
     public var deleteEvent: @Sendable (Int64) async throws -> Void
+    public var copyEvent: @Sendable (_ id: Int64, _ newStart: Date) async throws -> Event
     public var getEvent: @Sendable (Int64) async throws -> Event?
 }
 
@@ -55,6 +60,9 @@ public struct SettingsClient: Sendable {
     public var updateNotificationSettings: @Sendable (NotificationSettings) async throws -> NotificationSettings
     public var getAppearanceSettings: @Sendable () async throws -> AppearanceSettings?
     public var updateAppearanceSettings: @Sendable (AppearanceSettings) async throws -> AppearanceSettings
+    public var getWidgetConfigs: @Sendable () async throws -> [WidgetConfig]
+    public var upsertWidgetConfig: @Sendable (WidgetConfig) async throws -> WidgetConfig
+    public var deleteWidgetConfig: @Sendable (Int64?) async throws -> Void
 }
 
 // MARK: - Template Client
@@ -67,23 +75,41 @@ public struct TemplateClient: Sendable {
     public var reorderTemplates: @Sendable ([Int64]) async throws -> Void
 }
 
+// MARK: - Search Client
+@DependencyClient
+public struct SearchClient: Sendable {
+    public var searchEvents: @Sendable (_ query: String, _ calendarIDs: [Int64]?, _ from: Date?, _ to: Date?) async throws -> [Event]
+}
+
+// MARK: - Metrics / Error
+@DependencyClient
+public struct MetricsClient: Sendable {
+    public var logEvent: @Sendable (_ name: String, _ properties: [String: String]) -> Void
+}
+
+@DependencyClient
+public struct ErrorReporter: Sendable {
+    public var handle: @Sendable (_ error: Error, _ context: String) -> Void
+}
+
 // MARK: - Test Defaults
 extension EventClient: TestDependencyKey {
     public static var testValue: EventClient = .init(
-        fetchEvents: { _, _ in try await _unimplementedThrowing() },
-        createEvent: { _ in try await _unimplementedThrowing() },
-        updateEvent: { _ in try await _unimplementedThrowing() },
-        deleteEvent: { _ in try await _unimplementedThrowing() },
-        getEvent: { _ in try await _unimplementedThrowing() }
+        fetchEvents: { _, _ in try await _unimplementedAsync() },
+        createEvent: { _ in try await _unimplementedAsync() },
+        updateEvent: { _ in try await _unimplementedAsync() },
+        deleteEvent: { _ in try await _unimplementedAsync() },
+        copyEvent: { _, _ in try await _unimplementedAsync() },
+        getEvent: { _ in try await _unimplementedAsync() }
     )
 }
 
 extension CalendarClient: TestDependencyKey {
     public static var testValue: CalendarClient = .init(
-        fetchCalendars: { try await _unimplementedThrowing() },
-        createCalendar: { _ in try await _unimplementedThrowing() },
-        updateCalendar: { _ in try await _unimplementedThrowing() },
-        deleteCalendar: { _ in try await _unimplementedThrowing() }
+        fetchCalendars: { try await _unimplementedAsync() },
+        createCalendar: { _ in try await _unimplementedAsync() },
+        updateCalendar: { _ in try await _unimplementedAsync() },
+        deleteCalendar: { _ in try await _unimplementedAsync() }
     )
 }
 
@@ -108,20 +134,41 @@ extension SyncClient: TestDependencyKey {
 
 extension SettingsClient: TestDependencyKey {
     public static var testValue: SettingsClient = .init(
-        getNotificationSettings: { try await _unimplementedThrowing() },
-        updateNotificationSettings: { _ in try await _unimplementedThrowing() },
-        getAppearanceSettings: { try await _unimplementedThrowing() },
-        updateAppearanceSettings: { _ in try await _unimplementedThrowing() }
+        getNotificationSettings: { try await _unimplementedAsync() },
+        updateNotificationSettings: { _ in try await _unimplementedAsync() },
+        getAppearanceSettings: { try await _unimplementedAsync() },
+        updateAppearanceSettings: { _ in try await _unimplementedAsync() },
+        getWidgetConfigs: { try await _unimplementedAsync() },
+        upsertWidgetConfig: { _ in try await _unimplementedAsync() },
+        deleteWidgetConfig: { _ in try await _unimplementedAsync() }
     )
 }
 
 extension TemplateClient: TestDependencyKey {
     public static var testValue: TemplateClient = .init(
-        fetchTemplates: { try await _unimplementedThrowing() },
-        createTemplate: { _ in try await _unimplementedThrowing() },
-        updateTemplate: { _ in try await _unimplementedThrowing() },
-        deleteTemplate: { _ in try await _unimplementedThrowing() },
-        reorderTemplates: { _ in try await _unimplementedThrowing() }
+        fetchTemplates: { try await _unimplementedAsync() },
+        createTemplate: { _ in try await _unimplementedAsync() },
+        updateTemplate: { _ in try await _unimplementedAsync() },
+        deleteTemplate: { _ in try await _unimplementedAsync() },
+        reorderTemplates: { _ in try await _unimplementedAsync() }
+    )
+}
+
+extension SearchClient: TestDependencyKey {
+    public static var testValue: SearchClient = .init(
+        searchEvents: { _, _, _, _ in try await _unimplementedAsync() }
+    )
+}
+
+extension MetricsClient: TestDependencyKey {
+    public static var testValue: MetricsClient = .init(
+        logEvent: { _, _ in }
+    )
+}
+
+extension ErrorReporter: TestDependencyKey {
+    public static var testValue: ErrorReporter = .init(
+        handle: { _, _ in }
     )
 }
 
@@ -155,5 +202,20 @@ public extension DependencyValues {
     var templateClient: TemplateClient {
         get { self[TemplateClient.self] }
         set { self[TemplateClient.self] = newValue }
+    }
+    
+    var searchClient: SearchClient {
+        get { self[SearchClient.self] }
+        set { self[SearchClient.self] = newValue }
+    }
+    
+    var metricsClient: MetricsClient {
+        get { self[MetricsClient.self] }
+        set { self[MetricsClient.self] = newValue }
+    }
+    
+    var errorReporter: ErrorReporter {
+        get { self[ErrorReporter.self] }
+        set { self[ErrorReporter.self] = newValue }
     }
 }

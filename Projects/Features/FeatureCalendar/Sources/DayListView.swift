@@ -10,8 +10,7 @@ public struct DayListView: View {
     }
     
     public var body: some View {
-        List(store.events, id: \.
-self.id) { event in
+        List(store.events, id: \.id) { event in
             VStack(alignment: .leading, spacing: 4) {
                 Text(event.title).bold()
                 Text("\(event.startAt.formatted(date: .abbreviated, time: .shortened))")

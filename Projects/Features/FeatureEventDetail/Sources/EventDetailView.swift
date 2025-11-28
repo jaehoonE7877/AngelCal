@@ -15,9 +15,11 @@ public struct EventDetailView: View {
             if let memo = store.event.memo { Text(memo).font(.body) }
             Spacer()
             HStack {
+                Button("편집") { store.send(.edit) }
                 Button("삭제") { store.send(.delete) }.foregroundStyle(.red)
                 Spacer()
                 Button("복사") { store.send(.copyToDate(Date())) }
+                Button("템플릿 저장") { store.send(.saveAsTemplate) }
             }
         }
         .padding()

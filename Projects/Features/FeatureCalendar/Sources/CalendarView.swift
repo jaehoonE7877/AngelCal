@@ -40,13 +40,17 @@ public struct CalendarView: View {
             }
             .padding(.horizontal)
             
-            DayListView(store: store.scope(state: \.
- dayList, action: \.dayList))
+            DayListView(store: store.scope(state: \.dayList, action: \.dayList))
         }
-        .sheet(isPresented: $store.showingEventEdit) {
-            EventEditView(store: store.scope(state: \.
- eventEditState, action: \.eventEdit))
+        .sheet(
+            isPresented: Binding(
+                get: { store.showingEventEdit },
+                set: { store.send(.setEventEditPresented($0)) }
+            )
+        ) {
+            EventEditView(store: store.scope(state: \.eventEditState, action: \.eventEdit))
         }
+        .task { await store.send(.onAppear).finish() }
     }
     
     private func isToday(_ date: Date) -> Bool {
