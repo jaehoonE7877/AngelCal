@@ -1,55 +1,129 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# AngelCal Constitution
 
-## Core Principles
+  ## 1. 문서 목적
+  - 이 문서는 AngelCal 프로젝트의 변하지 않는 원칙과 제약을 정의한다.
+  - 모든 스펙, 기술 계획, 태스크, 코드 생성 및 수동 구현 작업은 이 헌법을 우선적으로 따른다.
+  - 이 헌법은 프로젝트 초기에 합의된 의견을 고정하기 위한 것이며, 개발 중에 발생하는 단기적인 편의를 이유로 쉽게 변경하지 않는다.
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+  ## 2. 프로젝트 개요
+  - AngelCal은 개인 사용자의 일정, 반복 루틴, 날짜 기반 정보를 관리하는 iOS 캘린더 앱이다.
+  - 핵심 목표
+    - 사용자가 일정 관리보다 실제 삶에 집중할 수 있도록 단순하고 예측 가능한 경험 제공
+    - 네트워크 상태와 상관없이 신뢰할 수 있는 오프라인 우선 경험
+    - 민감한 일정 정보를 안전하게 다루는 프라이버시 중심 설계
+  - 타깃 사용자
+    - iPhone을 주요 디바이스로 사용하는 개인 사용자
+    - 과도하게 복잡한 협업 기능보다 개인 일정 관리와 루틴 관리에 초점을 두는 사용자
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+  ## 3. 적용 범위와 우선순위
+  - 적용 대상
+    - 코드 저장소 전체
+    - Spec Kit으로 생성되는 모든 아티팩트: spec.md, plan.md, tasks.md, data-model.md, contracts, research 문서 등
+    - AI 코딩 에이전트가 생성하거나 수정하는 코드와 문서
+  - 우선순위
+    1) 이 헌법
+    2) AngelCal 관련 상위 노션 문서 (기능정의서, DB 설계서 – AngelCal (Supabase), 동기화 및 오프라인 설계 – AngelCal, 아키텍처 및 모듈 설계 – AngelCal (TCA + Tuist), 화면 플로우 및 내비게이션 설계 – AngelCal)
+    3) Spec Kit 기반 스펙 및 플랜 문서
+    4) 실제 구현 코드
+  - 상위 문서와 하위 산출물이 충돌하면 상위를 기준으로 재조정한다. 이미 배포된 기능은 실제 동작과 문서 불일치를 별도 정리한다.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+  ## 4. Spec Kit 문서 역할과 분리 원칙
+  ### 4.1 문서 간 역할 분리
+  - spec.md: 제품·사용자·도메인 관점에서 무엇을, 왜 만드는지 정의. 기술 스택 언급 없이 사용자 가치, 플로우, 요구사항, 성공 기준에 집중한다.
+  - plan.md: 엔지니어링 관점에서 어떻게 구현할지 결정. 사용하는 언어, 프레임워크, 라이브러리, 스토리지, 테스트 전략, 모듈 구조, 데이터 모델, 동시성 전략을 명시하고 헌법 제약 충족 방식을 설명한다.
+  - tasks.md: 실행 가능한 작업 단위. 검증 가능하고 완료 기준이 명확해야 하며 가능한 한 작은 단위로 쪼갠다.
+  ### 4.2 문서 분리 강제 규칙
+  - 기술적 구현 세부는 spec.md에 포함하지 않는다.
+  - 사용자 가치·요구사항 논의가 plan.md로 흘러가지 않도록 한다.
+  - 리뷰 체크포인트: spec.md에서는 기술 스택 언급 여부를, plan.md에서는 헌법 제약 반영을 확인한다.
+  - speckit.analyze에서 헌법 위반이 감지되면 구현 단계로 진행하지 않는다. 위반 사항을 수정하고 다시 analyze를 수행한다.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+  ## 5. 플랫폼과 기술 스택 제약
+  - 타깃 플랫폼: iOS 최신 버전 기준, iPhone 우선. iPad 지원은 별도 스펙에서 결정한다.
+  - 언어: Swift 6 이상, Swift Concurrency 기반 async/await 우선.
+  - UI: SwiftUI 우선. UIKit 사용은 기존 UIKit 연동, 특정 컨트롤·성능상 SwiftUI 대체 어려운 경우로 제한하며 SwiftUI 래퍼를 제공한다.
+  - 상태 관리와 아키텍처: The Composable Architecture(TCA)를 표준으로 사용하며 Reducer/State/Action/Environment 분리를 유지하고 부수효과는 Effect로 명시한다. 전역 공유 상태는 Store 또는 actor를 통해서만 접근한다.
+  - 모듈 구조: 멀티 모듈을 기본으로 Tuist와 SwiftPM으로 관리. 의존 방향은 App → Feature → Domain → Data/API/Persistence → Shared/Core/DesignSystem 순을 유지하고 Feature 간 직접 의존을 피하며 순환 의존을 금지한다.
+  - 의존성 관리: 새 서드파티 라이브러리는 plan.md에서 명시적으로 승인된 경우에만 추가하며, 핵심 기능에는 표준 라이브러리를 우선 사용한다.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+  ## 6. 동시성과 비동기 처리 원칙
+  - Swift Concurrency로 비동기 흐름을 관리하고 필요 시 기존 콜백 기반 API를 래핑한다.
+  - actor로 공유 상태를 보호하며 불필요한 메인 액터 차단을 피한다.
+  - GCD나 OperationQueue 직접 사용은 성능 튜닝 또는 시스템 API 제약 시에만 허용한다.
+  - 모든 비동기 함수는 취소 가능성을 고려하며 구조화된 동시성으로 메모리 누수와 캡처 사이클을 방지한다.
 
-### 커밋 메시지 규칙 (NON-NEGOTIABLE)
-- 커밋 제목(헤더)은 대문자로 시작하는 타입 접두어를 사용한다(예: `Chore`, `Feat`, `Fix`).
-- 커밋 제목과 본문은 한글로 작성한다. 본문이 있을 경우 모든 문장을 한글로 쓴다.
-- 커밋 본문은 필요 시 추가하며, 없을 경우 비워둘 수 있다. 작성 시 영어 혼용 금지.
+  ## 7. 데이터, 백엔드, 동기화 제약
+  - 백엔드: 기본 데이터 저장소는 Supabase와 PostgreSQL. DB 스키마 변경 전 노션 DB 설계서를 먼저 업데이트하고 마이그레이션을 설계한다.
+  - 로컬 저장소: 네트워크 없이도 일정·루틴 조회와 편집이 가능해야 하며 구현 방식은 동기화 및 오프라인 설계 문서를 따른다.
+  - 동기화 전략
+    - 오프라인 우선: 네트워크가 없어도 기본 기능 동작, 서버 동기화 실패 시에도 사용자 데이터는 소실되지 않는다.
+    - 충돌 해결: 동기화 및 오프라인 설계 문서에서 정의한 일관된 정책을 따른다.
+    - 동기화 피드백: 필요한 경우에만 노출하고, 오류 메시지는 재시도 등 행위 가능한 형태로 제공한다.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+  ## 8. UX, UI, 접근성 원칙
+  - UX 우선순위: 1) 반응성 2) 예측 가능성 3) 단순성.
+  - UI 일관성: 화면 플로우 및 내비게이션 설계 문서를 기준으로 내비게이션을 설계하며 DesignSystem 모듈의 공통 컴포넌트를 우선 사용한다.
+  - 접근성: 가능한 한 Dynamic Type을 지원하고 텍스트가 잘리는 UI를 허용하지 않는다. 중요한 정보는 색상만으로 구분하지 않고 아이콘·레이블을 병행하며, VoiceOver 주요 플로우가 끊기지 않도록 라벨링을 정리한다.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+  ## 9. 코드 스타일, 품질, 테스트
+  - 코드 스타일: SwiftLint와 SwiftFormat으로 일관성을 유지한다. 컴파일 경고는 0에 가깝게 관리하며 강제 언래핑은 예외적으로만 사용하고 이유를 주석으로 남긴다.
+  - 테스트: 도메인 로직과 동기화·데이터 정합성 로직에 단위 테스트를 작성하고, 중요한 화면 플로우에는 스냅샷 또는 UI 테스트를 적용한다. plan.md의 아키텍처나 데이터 흐름이 바뀌면 테스트 전략도 업데이트한다.
+  - 성능: 대량 일정 로딩, 캘린더 렌더링, 동기화 등 비용 큰 영역에 성능 기준을 두고 Instruments 등으로 회귀를 점검한다.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+  ## 10. AI 코딩 에이전트 사용 규칙
+  - 이 헌법은 모든 AI 코딩 에이전트에게도 동일하게 적용되는 상위 규칙이다.
+  - AI 에이전트 요청 시 헌법 제약 존중, spec/plan/tasks 역할 분리, 기존 코드 구조·모듈 경계 보존을 명시한다.
+  - AI 에이전트는 다음을 임의로 수행하지 않는다: constitution.md를 덮어쓰거나 삭제, 명시적 요청 없는 대규모 모듈 재구성, spec.md와 plan.md 역할 혼합.
+  - speckit.analyze 실행 시 헌법 위반이 있으면 문서를 먼저 수정하고 다시 analyze한 뒤 구현을 진행한다.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+  ## 11. Notion 문서와의 관계
+  - 노션의 AngelCal 상위 문서는 도메인·제품 관점 기준선이다.
+  - Spec Kit 문서는 노션을 기반으로 한 구체 요구사항과 기술 설계, 구현·테스트에 직결되는 실행형 문서이다.
+  - 변경 원칙: 새로운 기능이나 주요 변경 시 노션과 Spec Kit 문서를 함께 업데이트한다. 두 문서가 어긋나면 도메인 관점에서 옳은 상태를 정의하고 둘 다 정리한다.
 
-## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
+  ## 12. 변경 관리와 헌법 개정
+  - 개정 고려 상황: 기술 스택·아키텍처 근본 변경, 팀 구조·규모 큰 변동, 반복 패턴이 새로운 표준이 될 때.
+  - 개정 절차: 변경 이유와 영향을 문서 상단 변경 이력에 기록하고, 관련 스펙·플랜·태스크 문서의 충돌 여부를 검토하며 필요 시 speckit.analyze로 위반 여부를 점검한다. 헌법 개정은 사람이 주도하고 AI는 초안 작성·문장 다듬기 수준으로만 사용한다.
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+  ## Core Principles
+  ### I. 기술 스택 고정 (MUST)
+  - UIKit 금지, 전 화면 SwiftUI + TCA 패턴으로 구현한다.
+  - 데이터 계층은 Supabase(PostgREST/RPC) + SwiftData 로컬 캐시를 사용하며,
+    도메인 데이터에 대해 별도의 영구 스토리지를 추가하지 않는다
+    (세션/자격 증명은 Keychain 등 보안 스토리지 사용 가능).
+  - 의존성 주입은 TCA @Dependency 기반으로 통일하고, 전역 싱글턴 사용을 금지한다.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+  ### II. 로컬 우선·동기화 일관성 (MUST)
+  - 모든 CRUD는 SwiftData에 먼저 반영 후 Outbox를 통해 비동기 Push한다.
+  - Pull/Push 충돌은 서버 updated_at 기준 LWW(최신 기록 우선)로 처리한다.
+  - 네트워크 단절 시에도 CRUD가 차단되지 않아야 하며, 복구 시 중복 없이 단일 이벤트로 정합성을 유지해야 한다.
+
+  ### III. 단일 사용자 최적화 (MUST)
+  - 1인 사용자 시나리오를 기본으로 하며, 공유/권한 모델은 v0.1에서 고려 대상이 아니다.
+  - 초기 동기화 완료 전에도 최소 사용 가능한 상태(기본 캘린더/설정 시드)를 보장한다.
+  - 설정 변경(테마/알림/캘린더 기본값)은 앱 재시작 없이 즉시 UI와 위젯에 반영되어야 한다.
+
+  ### IV. 명세 우선·단계적 구현 (MUST)
+  - spec.md → plan.md → tasks.md 순서로 합의된 범위만 구현한다.
+  - 태스크는 스토리/요구사항에 매핑되어야 하며, 중간에 범위 변경 시 문서를 먼저 갱신한다.
+  - 테스트 또는 측정 가능한 수용 기준(시간/탭 수/성공률 등)이 없는 기능 추가를 금지한다.
+
+  ### V. 성능·품질 가드레일 (SHOULD)
+  - 월/주 뷰 렌더링에서 60fps를 유지하도록 데이터 fetch 범위와 뷰 상태를 최소화한다.
+  - 검색은 최근 90일 데이터 기준 2초 내 응답을 목표로 하고, 인덱스/필터 최적화를 우선 적용한다.
+  - 알림/위젯 딥링크는 실패 시에도 앱 진입을 막지 않고, 사용자에게 재시도/취소 선택지를 제공한다.
+
+  ### VI. 보안·비공개 기본값 (SHOULD)
+  - 비밀키/환경설정은 코드에 하드코딩하지 않고 구성 파일/런타임 주입으로 관리한다.
+  - 사용자 데이터는 단일 계정 기준으로만 저장하며, 외부 공유 API를 활성화하지 않는다.
+
+  ### 커밋 메시지 규칙 (NON-NEGOTIABLE)
+  - 커밋 제목(헤더)은 대문자로 시작하는 타입 접두어를 사용한다(예: Chore, Feat, Fix).
+  - 커밋 제목과 본문은 한글로 작성한다. 본문이 있을 경우 모든 문장을 한글로 쓴다.
+  - 커밋 본문은 필요 시 추가하며, 없을 경우 비워둘 수 있다. 작성 시 영어 혼용을 피한다.
+
+  ## Governance
+  - 본 헌법은 모든 스펙/플랜/태스크에 우선하며, 충돌 시 문서를 헌법에 맞게 수정한다.
+  - 개정은 사전 공지 후 버전 번호를 semantic versioning으로 갱신한다(MINOR: 원칙 추가/확장, PATCH: 표현 정리).
+  - 준수 검증은 주요 마일스톤(스토리 완료/릴리즈 전)에 수행하며, 미준수 항목은 수정 계획과 함께 기록한다.
+  - Version: 1.1.0 | Ratified: 2025-11-28 | Last Amended: 2025-11-28
